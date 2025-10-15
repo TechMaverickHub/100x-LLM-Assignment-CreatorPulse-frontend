@@ -12,18 +12,16 @@ const AuthProvider = ({ children }) => {
       const first_name = localStorage.getItem('user_first_name');
       const last_name = localStorage.getItem('user_last_name');
       const role_id = localStorage.getItem('user_role_id');
-      const role_name = localStorage.getItem('user_role_name');
       
-      console.log('AuthProvider - Checking localStorage:', { token: !!token, first_name, last_name, role_id, role_name });
+      console.log('AuthProvider - Checking localStorage:', { token: !!token, first_name, last_name, role_id });
       
-      if (token && (first_name || last_name || role_id || role_name)) {
+      if (token && (first_name || last_name || role_id)) {
         console.log('AuthProvider - Initializing user from localStorage');
         // Initialize user from stored individual fields
         const userData = {
           first_name: first_name || '',
           last_name: last_name || '',
-          role_id: role_id || '',
-          role_name: role_name || ''
+          role_id: role_id || ''
         };
         dispatch({ type: 'auth/loginUser/fulfilled', payload: { user: userData, access_token: token } });
       }

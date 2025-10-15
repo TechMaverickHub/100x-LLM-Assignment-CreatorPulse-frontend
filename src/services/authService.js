@@ -14,13 +14,12 @@ export const authService = {
       localStorage.setItem('access_token', access);
       localStorage.setItem('refresh_token', refresh);
       
-      // Store individual user fields separately
-      if (user) {
-        localStorage.setItem('user_first_name', user.first_name || '');
-        localStorage.setItem('user_last_name', user.last_name || '');
-        localStorage.setItem('user_role_id', user.role.id || '');
-        localStorage.setItem('user_role_name', user.role.name || '');
-      }
+    // Store individual user fields separately
+    if (user) {
+      localStorage.setItem('user_first_name', user.first_name || '');
+      localStorage.setItem('user_last_name', user.last_name || '');
+      localStorage.setItem('user_role_id', user.role.id || '');
+    }
       
       return { user, access_token: access, refresh_token: refresh };
     } catch (error) {
@@ -49,7 +48,6 @@ export const authService = {
     localStorage.removeItem('user_first_name');
     localStorage.removeItem('user_last_name');
     localStorage.removeItem('user_role_id');
-    localStorage.removeItem('user_role_name');
   },
 
   // Get current user (from stored data or token)
@@ -58,15 +56,13 @@ export const authService = {
     const first_name = localStorage.getItem('user_first_name');
     const last_name = localStorage.getItem('user_last_name');
     const role_id = localStorage.getItem('user_role_id');
-    const role_name = localStorage.getItem('user_role_name');
     
     // Check if we have any user data stored
-    if (first_name || last_name || role_id || role_name) {
+    if (first_name || last_name || role_id) {
       return {
         first_name: first_name || '',
         last_name: last_name || '',
-        role_id: role_id || '',
-        role_name: role_name || ''
+        role_id: role_id || ''
       };
     }
     

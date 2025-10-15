@@ -21,6 +21,22 @@ export const API_ROUTES = {
   ADMIN_SOURCES: "admin/sources/",
 };
 
+// Role Dictionary - Maps role IDs to role names
+export const ROLE_DICTIONARY = {
+  1: 'superadmin',
+  2: 'user'
+};
+
+// Helper function to get role name from role ID
+export const getRoleName = (roleId) => {
+  return ROLE_DICTIONARY[roleId] || 'user';
+};
+
+// Helper function to check if user is admin
+export const isAdmin = (roleId) => {
+  return roleId === 1; // superadmin
+};
+
 // Helper function to build full API URLs
 export const buildApiUrl = (route) => {
   return `${API_BASE_URL}/${route}`;

@@ -1,5 +1,6 @@
 import { Navigate, useLocation } from 'react-router-dom';
 import { useSelector } from 'react-redux';
+import { isAdmin } from '../constants.js';
 
 const ProtectedRoute = ({ children, requireAdmin = false }) => {
   const { isAuthenticated, user, loading } = useSelector(state => state.auth);
@@ -17,7 +18,7 @@ const ProtectedRoute = ({ children, requireAdmin = false }) => {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  if (requireAdmin && user?.role !== 'superadmin') {
+  if (requireAdmin && !isAdmin(user?.role_id)) {
     return <Navigate to="/dashboard" replace />;
   }
 

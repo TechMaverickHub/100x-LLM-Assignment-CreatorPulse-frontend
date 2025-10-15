@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { logout } from '../store/authSlice.js';
+import { getRoleName, isAdmin } from '../constants.js';
 import { 
   Home, 
   BookOpen, 
@@ -76,7 +77,7 @@ const Layout = ({ children }) => {
                   </Link>
                 );
               })}
-              {user?.role_name === 'superadmin' && adminNavigation.map((item) => {
+              {isAdmin(user?.role_id) && adminNavigation.map((item) => {
                 const isActive = location.pathname === item.href;
                 return (
                   <Link
@@ -123,7 +124,7 @@ const Layout = ({ children }) => {
                   </Link>
                 );
               })}
-              {user?.role_name === 'superadmin' && adminNavigation.map((item) => {
+              {isAdmin(user?.role_id) && adminNavigation.map((item) => {
                 const isActive = location.pathname === item.href;
                 return (
                   <Link
@@ -149,7 +150,7 @@ const Layout = ({ children }) => {
               </div>
               <div className="ml-3">
                 <p className="text-sm font-medium text-gray-700">{user?.first_name} {user?.last_name}</p>
-                <p className="text-xs text-gray-500 capitalize">{user?.role_name}</p>
+                <p className="text-xs text-gray-500 capitalize">{getRoleName(user?.role_id)}</p>
               </div>
             </div>
             <button
