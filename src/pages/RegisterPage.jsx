@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { registerUser, clearError } from '../store/authSlice.js';
+import { signupUser, clearError } from '../store/authSlice.js';
 import { Mail, Lock, User, Eye, EyeOff } from 'lucide-react';
 
 const RegisterPage = () => {
   const [formData, setFormData] = useState({
-    username: '',
+    first_name: '',
+    last_name: '',
     email: '',
     password: '',
     confirmPassword: ''
@@ -44,7 +45,16 @@ const RegisterPage = () => {
     }
 
     const { confirmPassword, ...userData } = formData;
-    dispatch(registerUser(userData));
+    try {
+      const result = await dispatch(signupUser(userData));
+      if (signupUser.fulfilled.match(result)) {
+        // Signup successful, show success message and redirect to login
+        alert('Account created successfully! Please login with your credentials.');
+        navigate('/login');
+      }
+    } catch (error) {
+      console.error('Signup error:', error);
+    }
   };
 
   return (
@@ -66,25 +76,49 @@ const RegisterPage = () => {
         </div>
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           <div className="space-y-4">
-            <div>
-              <label htmlFor="username" className="block text-sm font-medium text-gray-700">
-                Username
-              </label>
-              <div className="mt-1 relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <User className="h-5 w-5 text-gray-400" />
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <div>
+                <label htmlFor="first_name" className="block text-sm font-medium text-gray-700">
+                  First Name
+                </label>
+                <div className="mt-1 relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <User className="h-5 w-5 text-gray-400" />
+                  </div>
+                  <input
+                    id="first_name"
+                    name="first_name"
+                    type="text"
+                    autoComplete="given-name"
+                    required
+                    className="appearance-none relative block w-full px-10 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
+                    placeholder="First Name"
+                    value={formData.first_name}
+                    onChange={handleChange}
+                  />
                 </div>
-                <input
-                  id="username"
-                  name="username"
-                  type="text"
-                  autoComplete="username"
-                  required
-                  className="appearance-none relative block w-full px-10 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
-                  placeholder="Username"
-                  value={formData.username}
-                  onChange={handleChange}
-                />
+              </div>
+
+              <div>
+                <label htmlFor="last_name" className="block text-sm font-medium text-gray-700">
+                  Last Name
+                </label>
+                <div className="mt-1 relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <User className="h-5 w-5 text-gray-400" />
+                  </div>
+                  <input
+                    id="last_name"
+                    name="last_name"
+                    type="text"
+                    autoComplete="family-name"
+                    required
+                    className="appearance-none relative block w-full px-10 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
+                    placeholder="Last Name"
+                    value={formData.last_name}
+                    onChange={handleChange}
+                  />
+                </div>
               </div>
             </div>
 

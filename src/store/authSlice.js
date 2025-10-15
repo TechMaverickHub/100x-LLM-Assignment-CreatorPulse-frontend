@@ -29,6 +29,19 @@ export const registerUser = createAsyncThunk(
   }
 );
 
+export const signupUser = createAsyncThunk(
+  'auth/signup',
+  async (userData, { rejectWithValue }) => {
+    try {
+      const response = await authService.signup(userData);
+      return response;
+    } catch (error) {
+      const errorMessage = handleApiError(error);
+      return rejectWithValue(errorMessage);
+    }
+  }
+);
+
 export const getCurrentUser = createAsyncThunk(
   'auth/getCurrentUser',
   async (_, { rejectWithValue }) => {
@@ -95,6 +108,21 @@ const authSlice = createSlice({
         state.error = null;
       })
       .addCase(registerUser.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      // Signup
+      .addCase(signupUser.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(signupUser.fulfilled, (state, action) => {
+        state.loading = false;
+        state.error = null;
+        // Store the created user data for potential immediate login
+        state.user = action.payload.results;
+      })
+      .addCase(signupUser.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       })

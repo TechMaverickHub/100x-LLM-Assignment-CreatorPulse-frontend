@@ -41,6 +41,18 @@ export const authService = {
     }
   },
 
+  // Sign up user (new endpoint)
+  signup: async (userData) => {
+    try {
+      const response = await api.post(API_ROUTES.USER_SIGNUP, userData);
+      return response.data;
+    } catch (error) {
+      // Handle API error with detail field
+      const errorMessage = handleApiError(error);
+      throw new Error(errorMessage);
+    }
+  },
+
   // Logout user
   logout: () => {
     localStorage.removeItem('access_token');

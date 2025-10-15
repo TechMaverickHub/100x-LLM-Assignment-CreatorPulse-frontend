@@ -6,6 +6,7 @@ export const API_ROUTES = {
   // User Authentication Routes
   USER_LOGIN: "user/login/",
   USER_REGISTER: "user/register/",
+  USER_SIGNUP: "user/user-sign-up/",
   USER_REFRESH: "user/refresh/",
   USER_TOPICS: "user/topics/",
   
