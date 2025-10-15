@@ -13,6 +13,7 @@ export const API_ROUTES = {
   NEWSLETTER_LATEST: "newsletter/latest/",
   NEWSLETTER_BY_DATE: "newsletter/", // Will be used with date parameter
   NEWSLETTER_HISTORY: "newsletter/history/",
+  NEWSLETTER_GENERATE: "newsletter/generate",
   
   // Mail Routes
   MAIL_USER_LIST: "mail/user-list-filter",
