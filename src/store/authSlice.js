@@ -60,7 +60,6 @@ const authSlice = createSlice({
       state.isAuthenticated = false;
       state.error = null;
       authService.logout();
-      localStorage.removeItem('user_data');
     },
     clearError: (state) => {
       state.error = null;
@@ -74,14 +73,13 @@ const authSlice = createSlice({
         state.error = null;
       })
       .addCase(loginUser.fulfilled, (state, action) => {
+        console.log('AuthSlice - Login fulfilled:', action.payload);
         state.loading = false;
         state.user = action.payload.user;
         state.token = action.payload.access_token;
         state.isAuthenticated = true;
         state.error = null;
-        
-        // Store user data in localStorage for persistence
-        localStorage.setItem('user_data', JSON.stringify(action.payload.user));
+        console.log('AuthSlice - State updated, isAuthenticated:', state.isAuthenticated);
       })
       .addCase(loginUser.rejected, (state, action) => {
         state.loading = false;

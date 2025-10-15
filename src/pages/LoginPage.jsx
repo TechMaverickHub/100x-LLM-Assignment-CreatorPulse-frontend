@@ -15,12 +15,19 @@ const LoginPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
   
-  const { loading, error, isAuthenticated } = useSelector(state => state.auth);
+  const { loading, error, isAuthenticated, user } = useSelector(state => state.auth);
+  
+  // Debug logging
+  useEffect(() => {
+    console.log('LoginPage - Auth state:', { loading, error, isAuthenticated, user });
+  }, [loading, error, isAuthenticated, user]);
 
   const from = location.state?.from?.pathname || '/dashboard';
 
   useEffect(() => {
+    console.log('LoginPage - isAuthenticated changed:', isAuthenticated);
     if (isAuthenticated) {
+      console.log('LoginPage - Navigating to:', from);
       navigate(from, { replace: true });
     }
   }, [isAuthenticated, navigate, from]);
@@ -37,7 +44,15 @@ const LoginPage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    dispatch(loginUser(formData));
+    console.log('LoginPage - Starting login with:', formData);
+    try {
+      const result = await dispatch(loginUser(formData)).unwrap();
+      console.log('LoginPage - Login successful:', result);
+      // Navigation will be handled by the useEffect when isAuthenticated becomes true
+    } catch (error) {
+      // Error is already handled by Redux
+      console.error('LoginPage - Login failed:', error);
+    }
   };
 
   return (

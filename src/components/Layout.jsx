@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { useAuth } from '../hooks/useAuth.js';
+import { useSelector, useDispatch } from 'react-redux';
+import { logout } from '../store/authSlice.js';
 import { 
   Home, 
   BookOpen, 
@@ -14,12 +15,13 @@ import {
 
 const Layout = ({ children }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const { user, logout, isAuthenticated } = useAuth();
+  const dispatch = useDispatch();
+  const { user, isAuthenticated } = useSelector(state => state.auth);
   const location = useLocation();
   const navigate = useNavigate();
 
   const handleLogout = () => {
-    logout();
+    dispatch(logout());
     navigate('/login');
   };
 
@@ -74,7 +76,7 @@ const Layout = ({ children }) => {
                   </Link>
                 );
               })}
-              {user?.role === 'superadmin' && adminNavigation.map((item) => {
+              {user?.role_name === 'superadmin' && adminNavigation.map((item) => {
                 const isActive = location.pathname === item.href;
                 return (
                   <Link
@@ -121,7 +123,7 @@ const Layout = ({ children }) => {
                   </Link>
                 );
               })}
-              {user?.role === 'superadmin' && adminNavigation.map((item) => {
+              {user?.role_name === 'superadmin' && adminNavigation.map((item) => {
                 const isActive = location.pathname === item.href;
                 return (
                   <Link
@@ -146,8 +148,8 @@ const Layout = ({ children }) => {
                 <User className="h-8 w-8 text-primary-600" />
               </div>
               <div className="ml-3">
-                <p className="text-sm font-medium text-gray-700">{user?.username}</p>
-                <p className="text-xs text-gray-500 capitalize">{user?.role}</p>
+                <p className="text-sm font-medium text-gray-700">{user?.first_name} {user?.last_name}</p>
+                <p className="text-xs text-gray-500 capitalize">{user?.role_name}</p>
               </div>
             </div>
             <button
