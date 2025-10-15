@@ -24,5 +24,15 @@ export const mailService = {
     const response = await api.get(url);
     console.log('MailService - Response received:', response.data);
     return response.data;
+  },
+
+  // Get newsletter count
+  getNewsletterCount: async () => {
+    console.log('MailService - getNewsletterCount called');
+    console.log('MailService - Using route:', API_ROUTES.MAIL_COUNT);
+    const response = await api.get(API_ROUTES.MAIL_COUNT);
+    console.log('MailService - Count response:', response.data);
+    console.log('MailService - Count from results:', response.data?.results?.count);
+    return response.data;
   }
 };

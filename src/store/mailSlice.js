@@ -16,6 +16,19 @@ export const fetchNewsletterList = createAsyncThunk(
   }
 );
 
+export const fetchNewsletterCount = createAsyncThunk(
+  'mail/fetchNewsletterCount',
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await mailService.getNewsletterCount();
+      return response;
+    } catch (error) {
+      const errorMessage = handleApiError(error);
+      return rejectWithValue(errorMessage);
+    }
+  }
+);
+
 const initialState = {
   newsletters: [],
   pagination: {
@@ -24,6 +37,7 @@ const initialState = {
     previous: null,
     currentPage: 1
   },
+  totalNewsletterCount: 0,
   loading: false,
   error: null,
   filters: {
@@ -72,6 +86,15 @@ const mailSlice = createSlice({
       })
       .addCase(fetchNewsletterList.rejected, (state, action) => {
         state.loading = false;
+        state.error = action.payload;
+      })
+      .addCase(fetchNewsletterCount.fulfilled, (state, action) => {
+        console.log('MailSlice - fetchNewsletterCount.fulfilled:', action.payload);
+        console.log('MailSlice - Setting totalNewsletterCount to:', action.payload.results?.count || 0);
+        state.totalNewsletterCount = action.payload.results?.count || 0;
+        console.log('MailSlice - totalNewsletterCount after setting:', state.totalNewsletterCount);
+      })
+      .addCase(fetchNewsletterCount.rejected, (state, action) => {
         state.error = action.payload;
       });
   }

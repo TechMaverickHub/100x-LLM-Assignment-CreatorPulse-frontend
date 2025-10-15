@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchNewsletterList, setCurrentPage, setFilters, clearFilters } from '../store/mailSlice.js';
+import { fetchNewsletterList, fetchNewsletterCount, setCurrentPage, setFilters, clearFilters } from '../store/mailSlice.js';
 import HTMLViewer from '../components/HTMLViewer.jsx';
 import { 
   Mail, 
@@ -17,14 +17,16 @@ import {
 
 const NewsletterListPage = () => {
   const dispatch = useDispatch();
-  const { newsletters, pagination, loading, error, filters } = useSelector(state => state.mail);
+  const { newsletters, pagination, totalNewsletterCount, loading, error, filters } = useSelector(state => state.mail);
   const [searchTerm, setSearchTerm] = useState('');
   const [showFilters, setShowFilters] = useState(false);
   const [pageSize, setPageSize] = useState(10);
 
   useEffect(() => {
+    console.log('NewsletterListPage - useEffect triggered, fetching data...');
     dispatch(fetchNewsletterList({ page: 1, pageSize }));
-  }, [dispatch]);
+    dispatch(fetchNewsletterCount());
+  }, [dispatch, pageSize]);
 
   const handlePageChange = (page) => {
     dispatch(setCurrentPage(page));
@@ -127,10 +129,20 @@ const NewsletterListPage = () => {
             <p className="mt-2 text-gray-600">
               View and manage your sent newsletters
             </p>
+            {totalNewsletterCount > 0 && (
+              <div className="mt-3 inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-primary-100 text-primary-800">
+                <Mail className="h-4 w-4 mr-1" />
+                {totalNewsletterCount} newsletter{totalNewsletterCount !== 1 ? 's' : ''} received
+              </div>
+            )}
+            {console.log('NewsletterListPage - totalNewsletterCount:', totalNewsletterCount)}
           </div>
           <div className="flex items-center space-x-3">
             <button
-              onClick={() => dispatch(fetchNewsletterList({ page: pagination.currentPage, pageSize, ...filters }))}
+              onClick={() => {
+                dispatch(fetchNewsletterList({ page: pagination.currentPage, pageSize, ...filters }));
+                dispatch(fetchNewsletterCount());
+              }}
               className="inline-flex items-center px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
             >
               <RefreshCw className="h-4 w-4 mr-2" />

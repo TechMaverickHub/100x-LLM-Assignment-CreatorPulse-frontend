@@ -16,6 +16,7 @@ export const API_ROUTES = {
   
   // Mail Routes
   MAIL_USER_LIST: "mail/user-list-filter",
+  MAIL_COUNT: "mail/count-newsletter-received",
   
   // Topics Routes
   TOPICS_LIST: "topic/list",
@@ -56,6 +57,7 @@ export const FULL_API_URLS = {
   NEWSLETTER_LATEST: buildApiUrl(API_ROUTES.NEWSLETTER_LATEST),
   NEWSLETTER_HISTORY: buildApiUrl(API_ROUTES.NEWSLETTER_HISTORY),
   MAIL_USER_LIST: buildApiUrl(API_ROUTES.MAIL_USER_LIST),
+  MAIL_COUNT: buildApiUrl(API_ROUTES.MAIL_COUNT),
   TOPICS_LIST: buildApiUrl(API_ROUTES.TOPICS_LIST),
   USER_TOPICS_LIST: buildApiUrl(API_ROUTES.USER_TOPICS_LIST),
   USER_TOPICS_UPDATE: buildApiUrl(API_ROUTES.USER_TOPICS_UPDATE),
