@@ -2,20 +2,22 @@ import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchUserTopics } from '../store/topicSlice.js';
-import { fetchNewsletterCount } from '../store/mailSlice.js';
+import { fetchNewsletterCount, fetchLatestNewsletter } from '../store/mailSlice.js';
 import { isAdmin } from '../constants.js';
+import HTMLViewer from '../components/HTMLViewer.jsx';
 import { BookOpen, Newspaper, TrendingUp, Users } from 'lucide-react';
 
 const Dashboard = () => {
   const dispatch = useDispatch();
   const { user } = useSelector(state => state.auth);
   const { userTopics, loading } = useSelector(state => state.topics);
-  const { totalNewsletterCount } = useSelector(state => state.mail);
+  const { totalNewsletterCount, latestNewsletter } = useSelector(state => state.mail);
 
   useEffect(() => {
-    console.log('Dashboard - Fetching user topics and newsletter count');
+    console.log('Dashboard - Fetching user topics, newsletter count, and latest newsletter');
     dispatch(fetchUserTopics());
     dispatch(fetchNewsletterCount());
+    dispatch(fetchLatestNewsletter());
   }, [dispatch]);
 
   // Debug logging
@@ -135,43 +137,42 @@ const Dashboard = () => {
           </div>
         </div>
 
-        {/* Latest Newsletter */}
-        <div className="bg-white rounded-xl shadow-sm border border-primary-200 p-4">
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="text-base font-semibold text-gray-900">Latest Newsletter</h2>
-            <Link
-              to="/newsletter"
-              className="text-xs font-medium text-primary-600 hover:text-primary-500 px-2 py-1 rounded-md hover:bg-primary-50 transition-colors"
-            >
-              View All
-            </Link>
-          </div>
-          <div>
-            <div className="text-xs text-gray-500 mb-3 bg-gray-50 rounded-lg p-2 border border-gray-100">
-              Today's AI insights and updates
-            </div>
-            <div className="space-y-1.5 mb-3">
-              <div className="text-xs text-gray-600 flex items-center">
-                <div className="w-1 h-1 bg-primary-400 rounded-full mr-2"></div>
-                Machine Learning breakthroughs this week
-              </div>
-              <div className="text-xs text-gray-600 flex items-center">
-                <div className="w-1 h-1 bg-primary-400 rounded-full mr-2"></div>
-                New AI tools and frameworks
-              </div>
-              <div className="text-xs text-gray-600 flex items-center">
-                <div className="w-1 h-1 bg-primary-400 rounded-full mr-2"></div>
-                Industry trends and analysis
-              </div>
-            </div>
-            <Link
-              to="/newsletter"
-              className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 transition-colors"
-            >
-              Read Newsletter
-            </Link>
-          </div>
-        </div>
+         {/* Latest Newsletter */}
+         <div className="bg-white rounded-xl shadow-sm border border-primary-200 p-4">
+           <div className="mb-3">
+             <h2 className="text-base font-semibold text-gray-900">Latest Newsletter</h2>
+           </div>
+           <div>
+             {latestNewsletter ? (
+               <div>
+                 <div className="mb-3 bg-gray-50 rounded-lg border border-gray-100 max-h-48 overflow-y-auto">
+                   <div 
+                     className="p-3 text-sm"
+                     dangerouslySetInnerHTML={{ 
+                       __html: latestNewsletter.message.substring(0, latestNewsletter.message.length / 2) + '...'
+                     }}
+                   />
+                 </div>
+                 <div className="mb-3">
+                   <HTMLViewer 
+                     htmlContent={latestNewsletter.message} 
+                     title="Latest Newsletter Preview"
+                   />
+                 </div>
+                 <Link
+                   to="/newsletter/history"
+                   className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 transition-colors"
+                 >
+                   View All Newsletters
+                 </Link>
+               </div>
+             ) : (
+               <div className="text-xs text-gray-500 bg-gray-50 rounded-lg p-3 border border-gray-100">
+                 No newsletters available yet.
+               </div>
+             )}
+           </div>
+         </div>
       </div>
 
       {/* Admin Section (if superadmin) */}

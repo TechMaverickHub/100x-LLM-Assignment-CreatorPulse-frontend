@@ -29,6 +29,19 @@ export const fetchNewsletterCount = createAsyncThunk(
   }
 );
 
+export const fetchLatestNewsletter = createAsyncThunk(
+  'mail/fetchLatestNewsletter',
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await mailService.getLatestNewsletter();
+      return response;
+    } catch (error) {
+      const errorMessage = handleApiError(error);
+      return rejectWithValue(errorMessage);
+    }
+  }
+);
+
 const initialState = {
   newsletters: [],
   pagination: {
@@ -38,6 +51,7 @@ const initialState = {
     currentPage: 1
   },
   totalNewsletterCount: 0,
+  latestNewsletter: null,
   loading: false,
   error: null,
   filters: {
@@ -95,6 +109,12 @@ const mailSlice = createSlice({
         console.log('MailSlice - totalNewsletterCount after setting:', state.totalNewsletterCount);
       })
       .addCase(fetchNewsletterCount.rejected, (state, action) => {
+        state.error = action.payload;
+      })
+      .addCase(fetchLatestNewsletter.fulfilled, (state, action) => {
+        state.latestNewsletter = action.payload.results || null;
+      })
+      .addCase(fetchLatestNewsletter.rejected, (state, action) => {
         state.error = action.payload;
       });
   }

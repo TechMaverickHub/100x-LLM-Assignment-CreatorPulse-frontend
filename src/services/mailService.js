@@ -34,5 +34,14 @@ export const mailService = {
     console.log('MailService - Count response:', response.data);
     console.log('MailService - Count from results:', response.data?.results?.count);
     return response.data;
+  },
+
+  // Get latest newsletter
+  getLatestNewsletter: async () => {
+    console.log('MailService - getLatestNewsletter called');
+    console.log('MailService - Using route:', API_ROUTES.MAIL_LATEST);
+    const response = await api.get(API_ROUTES.MAIL_LATEST);
+    console.log('MailService - Latest newsletter response:', response.data);
+    return response.data;
   }
 };
