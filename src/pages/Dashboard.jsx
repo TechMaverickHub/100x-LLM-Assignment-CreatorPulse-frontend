@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchUserTopics } from '../store/topicSlice.js';
+import { fetchNewsletterCount } from '../store/mailSlice.js';
 import { isAdmin } from '../constants.js';
 import { BookOpen, Newspaper, TrendingUp, Users } from 'lucide-react';
 
@@ -9,10 +10,12 @@ const Dashboard = () => {
   const dispatch = useDispatch();
   const { user } = useSelector(state => state.auth);
   const { userTopics, loading } = useSelector(state => state.topics);
+  const { totalNewsletterCount } = useSelector(state => state.mail);
 
   useEffect(() => {
-    console.log('Dashboard - Fetching user topics');
+    console.log('Dashboard - Fetching user topics and newsletter count');
     dispatch(fetchUserTopics());
+    dispatch(fetchNewsletterCount());
   }, [dispatch]);
 
   // Debug logging
@@ -34,7 +37,7 @@ const Dashboard = () => {
     },
     {
       name: 'Newsletters Received',
-      value: '12',
+      value: totalNewsletterCount || 0,
       icon: Newspaper,
       color: 'text-green-600',
       bgColor: 'bg-green-100'
@@ -53,7 +56,7 @@ const Dashboard = () => {
       {/* Welcome Section */}
       <div className="bg-white rounded-xl shadow-sm border border-primary-200 p-6">
         <h1 className="text-2xl font-bold text-gray-900">
-          Welcome back, {user?.username}!
+          Welcome back, {user?.first_name} {user?.last_name}!
         </h1>
         <p className="mt-2 text-gray-600">
           Here's what's happening with your AI newsletter today.
