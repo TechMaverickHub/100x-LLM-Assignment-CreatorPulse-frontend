@@ -1,9 +1,10 @@
 import api from './api.js';
+import { API_ROUTES } from '../constants.js';
 
 export const authService = {
   // Login user
   login: async (credentials) => {
-    const response = await api.post('/user/login/', credentials);
+    const response = await api.post(API_ROUTES.USER_LOGIN, credentials);
     const { results } = response.data;
     const { access, refresh, user } = results;
     
@@ -16,7 +17,7 @@ export const authService = {
 
   // Register user
   register: async (userData) => {
-    const response = await api.post('/user/register/', userData);
+    const response = await api.post(API_ROUTES.USER_REGISTER, userData);
     return response.data;
   },
 
@@ -45,7 +46,7 @@ export const authService = {
     const refresh_token = localStorage.getItem('refresh_token');
     if (!refresh_token) throw new Error('No refresh token');
     
-    const response = await api.post('/user/refresh/', { refresh: refresh_token });
+    const response = await api.post(API_ROUTES.USER_REFRESH, { refresh: refresh_token });
     const { access } = response.data;
     
     localStorage.setItem('access_token', access);
