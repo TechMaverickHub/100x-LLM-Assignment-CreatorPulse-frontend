@@ -15,7 +15,9 @@ export const API_ROUTES = {
   NEWSLETTER_HISTORY: "newsletter/history/",
   
   // Topics Routes
-  TOPICS: "topics/",
+  TOPICS_LIST: "topic/list",
+  USER_TOPICS_LIST: "topic/user-topic-list",
+  USER_TOPICS_UPDATE: "topic/user-topic-update",
   
   // Admin Routes
   ADMIN_SOURCES: "admin/sources/",
@@ -50,6 +52,8 @@ export const FULL_API_URLS = {
   USER_TOPICS: buildApiUrl(API_ROUTES.USER_TOPICS),
   NEWSLETTER_LATEST: buildApiUrl(API_ROUTES.NEWSLETTER_LATEST),
   NEWSLETTER_HISTORY: buildApiUrl(API_ROUTES.NEWSLETTER_HISTORY),
-  TOPICS: buildApiUrl(API_ROUTES.TOPICS),
+  TOPICS_LIST: buildApiUrl(API_ROUTES.TOPICS_LIST),
+  USER_TOPICS_LIST: buildApiUrl(API_ROUTES.USER_TOPICS_LIST),
+  USER_TOPICS_UPDATE: buildApiUrl(API_ROUTES.USER_TOPICS_UPDATE),
   ADMIN_SOURCES: buildApiUrl(API_ROUTES.ADMIN_SOURCES),
 };

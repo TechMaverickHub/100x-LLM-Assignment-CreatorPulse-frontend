@@ -73,9 +73,11 @@ const topicSlice = createSlice({
         state.error = null;
       })
       .addCase(fetchTopics.fulfilled, (state, action) => {
+        console.log('TopicSlice - fetchTopics fulfilled:', action.payload);
         state.loading = false;
-        state.topics = action.payload;
+        state.topics = action.payload.results || [];
         state.error = null;
+        console.log('TopicSlice - topics set to:', state.topics);
       })
       .addCase(fetchTopics.rejected, (state, action) => {
         state.loading = false;
@@ -87,10 +89,14 @@ const topicSlice = createSlice({
         state.error = null;
       })
       .addCase(fetchUserTopics.fulfilled, (state, action) => {
+        console.log('TopicSlice - fetchUserTopics fulfilled:', action.payload);
         state.loading = false;
-        state.userTopics = action.payload;
-        state.selectedTopics = action.payload.map(topic => topic.id);
+        state.userTopics = action.payload.results || [];
+        // Extract topic IDs from the nested structure
+        state.selectedTopics = (action.payload.results || []).map(userTopic => userTopic.topic.id);
         state.error = null;
+        console.log('TopicSlice - userTopics set to:', state.userTopics);
+        console.log('TopicSlice - selectedTopics set to:', state.selectedTopics);
       })
       .addCase(fetchUserTopics.rejected, (state, action) => {
         state.loading = false;
@@ -103,7 +109,7 @@ const topicSlice = createSlice({
       })
       .addCase(updateUserTopics.fulfilled, (state, action) => {
         state.loading = false;
-        state.userTopics = action.payload;
+        // Update successful, refresh user topics
         state.error = null;
       })
       .addCase(updateUserTopics.rejected, (state, action) => {

@@ -9,9 +9,24 @@ const TopicsPage = () => {
   const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
+    console.log('TopicsPage - Fetching topics and user topics');
     dispatch(fetchTopics());
     dispatch(fetchUserTopics());
   }, [dispatch]);
+
+  // Debug logging
+  useEffect(() => {
+    console.log('TopicsPage - State updated:', { 
+      topics: topics.length, 
+      userTopics: userTopics.length, 
+      selectedTopics: selectedTopics.length,
+      loading,
+      error 
+    });
+    console.log('TopicsPage - Topics data:', topics);
+    console.log('TopicsPage - User topics data:', userTopics);
+    console.log('TopicsPage - Selected topics:', selectedTopics);
+  }, [topics, userTopics, selectedTopics, loading, error]);
 
   const handleTopicToggle = (topicId) => {
     dispatch(toggleTopicSelection(topicId));
@@ -21,6 +36,8 @@ const TopicsPage = () => {
     setIsSaving(true);
     try {
       await dispatch(updateUserTopics(selectedTopics)).unwrap();
+      // Refresh user topics after successful update
+      dispatch(fetchUserTopics());
     } catch (error) {
       console.error('Failed to update topics:', error);
     } finally {
@@ -29,8 +46,12 @@ const TopicsPage = () => {
   };
 
   const hasChanges = () => {
-    const currentTopicIds = userTopics.map(topic => topic.id);
-    return JSON.stringify(currentTopicIds.sort()) !== JSON.stringify(selectedTopics.sort());
+    // Extract topic IDs from the nested userTopics structure
+    const currentTopicIds = userTopics.map(userTopic => userTopic.topic.id);
+    // Create copies before sorting to avoid mutating the original arrays
+    const sortedCurrent = [...currentTopicIds].sort();
+    const sortedSelected = [...selectedTopics].sort();
+    return JSON.stringify(sortedCurrent) !== JSON.stringify(sortedSelected);
   };
 
   return (
@@ -59,8 +80,15 @@ const TopicsPage = () => {
         </div>
       ) : (
         <>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {topics.map((topic) => {
+          {topics.length === 0 ? (
+            <div className="bg-yellow-50 border border-yellow-200 rounded-md p-4">
+              <div className="text-sm text-yellow-700">
+                No topics available. Please check your connection or try refreshing the page.
+              </div>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {topics.map((topic) => {
               const isSelected = selectedTopics.includes(topic.id);
               return (
                 <div
@@ -77,14 +105,6 @@ const TopicsPage = () => {
                       <h3 className="text-lg font-medium text-gray-900 mb-2">
                         {topic.name}
                       </h3>
-                      <p className="text-sm text-gray-600 mb-3">
-                        {topic.description}
-                      </p>
-                      <div className="flex items-center text-xs text-gray-500">
-                        <span className="bg-primary-100 text-primary-800 px-2 py-1 rounded-full">
-                          {topic.category}
-                        </span>
-                      </div>
                     </div>
                     <div className="ml-4 flex-shrink-0">
                       {isSelected ? (
@@ -98,8 +118,9 @@ const TopicsPage = () => {
                   </div>
                 </div>
               );
-            })}
-          </div>
+              })}
+            </div>
+          )}
 
           <div className="bg-white rounded-xl shadow-sm border border-primary-200 p-6">
             <div className="flex items-center justify-between">
