@@ -1,55 +1,94 @@
 import api from './api.js';
 import { API_ROUTES } from '../constants.js';
+import { handleApiError } from '../utils/errorHandler.js';
 
 export const authService = {
   // Login user
   login: async (credentials) => {
-    const response = await api.post(API_ROUTES.USER_LOGIN, credentials);
-    const { results } = response.data;
-    const { access, refresh, user } = results;
-    
-    // Store tokens in localStorage
-    localStorage.setItem('access_token', access);
-    localStorage.setItem('refresh_token', refresh);
-    
-    return { user, access_token: access, refresh_token: refresh };
+    try {
+      const response = await api.post(API_ROUTES.USER_LOGIN, credentials);
+      const { results } = response.data;
+      const { access, refresh, user } = results;
+      
+      // Store tokens in localStorage
+      localStorage.setItem('access_token', access);
+      localStorage.setItem('refresh_token', refresh);
+      
+      // Store individual user fields separately
+      if (user) {
+        localStorage.setItem('user_first_name', user.first_name || '');
+        localStorage.setItem('user_last_name', user.last_name || '');
+        localStorage.setItem('user_role_id', user.role.id || '');
+        localStorage.setItem('user_role_name', user.role.name || '');
+      }
+      
+      return { user, access_token: access, refresh_token: refresh };
+    } catch (error) {
+      // Handle API error with detail field
+      const errorMessage = handleApiError(error);
+      throw new Error(errorMessage);
+    }
   },
 
   // Register user
   register: async (userData) => {
-    const response = await api.post(API_ROUTES.USER_REGISTER, userData);
-    return response.data;
+    try {
+      const response = await api.post(API_ROUTES.USER_REGISTER, userData);
+      return response.data;
+    } catch (error) {
+      // Handle API error with detail field
+      const errorMessage = handleApiError(error);
+      throw new Error(errorMessage);
+    }
   },
 
   // Logout user
   logout: () => {
     localStorage.removeItem('access_token');
     localStorage.removeItem('refresh_token');
+    localStorage.removeItem('user_first_name');
+    localStorage.removeItem('user_last_name');
+    localStorage.removeItem('user_role_id');
+    localStorage.removeItem('user_role_name');
   },
 
   // Get current user (from stored data or token)
   getCurrentUser: async () => {
-    // Since there's no profile endpoint, we'll get user info from the stored token
-    // or return the user data if it's stored in localStorage
-    const userData = localStorage.getItem('user_data');
-    if (userData) {
-      return JSON.parse(userData);
+    // Get individual user fields from localStorage
+    const first_name = localStorage.getItem('user_first_name');
+    const last_name = localStorage.getItem('user_last_name');
+    const role_id = localStorage.getItem('user_role_id');
+    const role_name = localStorage.getItem('user_role_name');
+    
+    // Check if we have any user data stored
+    if (first_name || last_name || role_id || role_name) {
+      return {
+        first_name: first_name || '',
+        last_name: last_name || '',
+        role_id: role_id || '',
+        role_name: role_name || ''
+      };
     }
     
-    // If no stored user data, we can decode the token to get basic info
-    // or return null to force re-login
+    // If no stored user data, return null to force re-login
     return null;
   },
 
   // Refresh token
   refreshToken: async () => {
-    const refresh_token = localStorage.getItem('refresh_token');
-    if (!refresh_token) throw new Error('No refresh token');
-    
-    const response = await api.post(API_ROUTES.USER_REFRESH, { refresh: refresh_token });
-    const { access } = response.data;
-    
-    localStorage.setItem('access_token', access);
-    return access;
+    try {
+      const refresh_token = localStorage.getItem('refresh_token');
+      if (!refresh_token) throw new Error('No refresh token');
+      
+      const response = await api.post(API_ROUTES.USER_REFRESH, { refresh: refresh_token });
+      const { access } = response.data;
+      
+      localStorage.setItem('access_token', access);
+      return access;
+    } catch (error) {
+      // Handle API error with detail field
+      const errorMessage = handleApiError(error);
+      throw new Error(errorMessage);
+    }
   }
 };

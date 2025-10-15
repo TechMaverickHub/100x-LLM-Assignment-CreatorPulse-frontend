@@ -1,5 +1,6 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { authService } from '../services/authService.js';
+import { handleApiError } from '../utils/errorHandler.js';
 
 // Async thunks
 export const loginUser = createAsyncThunk(
@@ -9,7 +10,8 @@ export const loginUser = createAsyncThunk(
       const response = await authService.login(credentials);
       return response;
     } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'Login failed');
+      const errorMessage = handleApiError(error);
+      return rejectWithValue(errorMessage);
     }
   }
 );
@@ -21,7 +23,8 @@ export const registerUser = createAsyncThunk(
       const response = await authService.register(userData);
       return response;
     } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'Registration failed');
+      const errorMessage = handleApiError(error);
+      return rejectWithValue(errorMessage);
     }
   }
 );
@@ -33,7 +36,8 @@ export const getCurrentUser = createAsyncThunk(
       const response = await authService.getCurrentUser();
       return response;
     } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to get user');
+      const errorMessage = handleApiError(error);
+      return rejectWithValue(errorMessage);
     }
   }
 );
