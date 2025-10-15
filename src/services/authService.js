@@ -18,7 +18,7 @@ export const authService = {
     if (user) {
       localStorage.setItem('user_first_name', user.first_name || '');
       localStorage.setItem('user_last_name', user.last_name || '');
-      localStorage.setItem('user_role_id', user.role.id || '');
+      localStorage.setItem('user_role_id', user.role.pk || '');
     }
       
       return { user, access_token: access, refresh_token: refresh };
