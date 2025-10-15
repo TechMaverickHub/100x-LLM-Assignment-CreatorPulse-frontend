@@ -29,6 +29,9 @@ export const API_ROUTES = {
   
   // Admin Routes
   ADMIN_SOURCES: "admin/sources/",
+  
+  // User Source Routes
+  USER_SOURCES: "source/user-source-list-filter",
 };
 
 // Role Dictionary - Maps role IDs to role names
@@ -45,6 +48,44 @@ export const getRoleName = (roleId) => {
 // Helper function to check if user is admin
 export const isAdmin = (roleId) => {
   return roleId === 1; // superadmin
+};
+
+// Source Type Constants
+export const SOURCE_TYPE_CONSTANTS = {
+  TWITTER: 1,
+  YOUTUBE: 2,
+  RSS: 3,
+  BLOG: 4,
+  API: 5,
+  REDDIT: 6,
+  ARXIV: 7,
+};
+
+// Topic Constants
+export const TOPIC_CONSTANTS = {
+  AI: 1,
+  BLOCKCHAIN: 2,
+  CYBERSECURITY: 3,
+  IOT: 4,
+};
+
+// Source Type Labels
+export const SOURCE_TYPE_LABELS = {
+  [SOURCE_TYPE_CONSTANTS.TWITTER]: 'Twitter',
+  [SOURCE_TYPE_CONSTANTS.YOUTUBE]: 'YouTube',
+  [SOURCE_TYPE_CONSTANTS.RSS]: 'RSS',
+  [SOURCE_TYPE_CONSTANTS.BLOG]: 'Blog',
+  [SOURCE_TYPE_CONSTANTS.API]: 'API',
+  [SOURCE_TYPE_CONSTANTS.REDDIT]: 'Reddit',
+  [SOURCE_TYPE_CONSTANTS.ARXIV]: 'ArXiv',
+};
+
+// Topic Labels
+export const TOPIC_LABELS = {
+  [TOPIC_CONSTANTS.AI]: 'AI',
+  [TOPIC_CONSTANTS.BLOCKCHAIN]: 'Blockchain',
+  [TOPIC_CONSTANTS.CYBERSECURITY]: 'Cybersecurity',
+  [TOPIC_CONSTANTS.IOT]: 'IoT',
 };
 
 // Helper function to build full API URLs
@@ -67,4 +108,5 @@ export const FULL_API_URLS = {
   USER_TOPICS_LIST: buildApiUrl(API_ROUTES.USER_TOPICS_LIST),
   USER_TOPICS_UPDATE: buildApiUrl(API_ROUTES.USER_TOPICS_UPDATE),
   ADMIN_SOURCES: buildApiUrl(API_ROUTES.ADMIN_SOURCES),
+  USER_SOURCES: buildApiUrl(API_ROUTES.USER_SOURCES),
 };

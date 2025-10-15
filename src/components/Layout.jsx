@@ -11,7 +11,8 @@ import {
   LogOut, 
   Menu, 
   X,
-  User
+  User,
+  Globe
 } from 'lucide-react';
 
 const Layout = ({ children }) => {
@@ -29,6 +30,7 @@ const Layout = ({ children }) => {
   const navigation = [
     { name: 'Dashboard', href: '/dashboard', icon: Home },
     { name: 'Topics', href: '/topics', icon: BookOpen },
+    { name: 'Sources', href: '/sources', icon: Globe },
     { name: 'Newsletter', href: '/newsletter', icon: Newspaper },
     { name: 'Newsletter History', href: '/newsletter/history', icon: Newspaper },
   ];

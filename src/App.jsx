@@ -11,6 +11,7 @@ import Dashboard from './pages/Dashboard.jsx';
 import TopicsPage from './pages/TopicsPage.jsx';
 import NewsletterPage from './pages/NewsletterPage.jsx';
 import NewsletterListPage from './pages/NewsletterListPage.jsx';
+import SourceDashboard from './pages/SourceDashboard.jsx';
 import SourcesPage from './pages/admin/SourcesPage.jsx';
 
 function App() {
@@ -92,6 +93,17 @@ function App() {
             <ProtectedRoute>
               <Layout>
                 <NewsletterListPage />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+        
+        <Route
+          path="/sources"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <SourceDashboard />
               </Layout>
             </ProtectedRoute>
           }
