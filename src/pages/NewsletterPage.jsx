@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import { newsletterService } from '../services/newsletterService.js';
 import { RefreshCw, X, Mail, Send } from 'lucide-react';
@@ -12,7 +12,47 @@ const NewsletterPage = () => {
   const [isSending, setIsSending] = useState(false);
   const [sendError, setSendError] = useState(null);
   const [sendSuccess, setSendSuccess] = useState(null);
+  const [cooldownTime, setCooldownTime] = useState(0);
+  const [isInCooldown, setIsInCooldown] = useState(false);
   const { user } = useSelector(state => state.auth);
+
+  // Timer effect for cooldown
+  useEffect(() => {
+    let interval = null;
+    
+    if (cooldownTime > 0) {
+      interval = setInterval(() => {
+        setCooldownTime(time => {
+          if (time <= 1) {
+            setIsInCooldown(false);
+            return 0;
+          }
+          return time - 1;
+        });
+      }, 1000);
+    }
+    
+    return () => {
+      if (interval) {
+        clearInterval(interval);
+      }
+    };
+  }, [cooldownTime]);
+
+  // Check for existing cooldown on component mount
+  useEffect(() => {
+    const lastSendTime = localStorage.getItem('lastNewsletterSend');
+    if (lastSendTime) {
+      const timeSinceLastSend = Date.now() - parseInt(lastSendTime);
+      const cooldownPeriod = 10 * 60 * 1000; // 10 minutes in milliseconds
+      
+      if (timeSinceLastSend < cooldownPeriod) {
+        const remainingTime = Math.ceil((cooldownPeriod - timeSinceLastSend) / 1000);
+        setCooldownTime(remainingTime);
+        setIsInCooldown(true);
+      }
+    }
+  }, []);
 
   const handleGenerateNewsletter = async () => {
     try {
@@ -36,6 +76,11 @@ const NewsletterPage = () => {
       return;
     }
 
+    if (isInCooldown) {
+      setSendError('Please wait before sending another newsletter');
+      return;
+    }
+
     try {
       setIsSending(true);
       setSendError(null);
@@ -52,12 +97,23 @@ const NewsletterPage = () => {
         : 'Newsletter sent successfully'
       );
       setRecipientEmail(''); // Clear the input after successful send
+      
+      // Start cooldown timer (10 minutes = 600 seconds)
+      setCooldownTime(600);
+      setIsInCooldown(true);
+      localStorage.setItem('lastNewsletterSend', Date.now().toString());
     } catch (err) {
       setSendError('Failed to send newsletter');
       console.error('Error sending newsletter:', err);
     } finally {
       setIsSending(false);
     }
+  };
+
+  const formatTime = (seconds) => {
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+    return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
   };
 
   return (
@@ -153,6 +209,14 @@ const NewsletterPage = () => {
             <p className="text-sm text-gray-600 mt-1">
               Send the generated newsletter via email. Leave recipient empty to send to default recipients.
             </p>
+            {isInCooldown && (
+              <div className="mt-2 p-2 bg-yellow-50 border border-yellow-200 rounded-md">
+                <p className="text-sm text-yellow-700">
+                  ⏰ Email sending is restricted for 10 minutes after each send to prevent spam. 
+                  Time remaining: <span className="font-medium">{formatTime(cooldownTime)}</span>
+                </p>
+              </div>
+            )}
           </div>
           
           <div className="space-y-4">
@@ -177,13 +241,22 @@ const NewsletterPage = () => {
             
             <button
               onClick={handleSendNewsletter}
-              disabled={isSending}
-              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              disabled={isSending || isInCooldown}
+              className={`inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md transition-colors ${
+                isInCooldown 
+                  ? 'text-gray-500 bg-gray-300 cursor-not-allowed' 
+                  : 'text-white bg-green-600 hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed'
+              }`}
             >
               {isSending ? (
                 <>
                   <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
                   Sending...
+                </>
+              ) : isInCooldown ? (
+                <>
+                  <RefreshCw className="h-4 w-4 mr-2" />
+                  Cooldown: {formatTime(cooldownTime)}
                 </>
               ) : (
                 <>
