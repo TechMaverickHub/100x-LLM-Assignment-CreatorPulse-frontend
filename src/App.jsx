@@ -10,6 +10,7 @@ import RegisterPage from './pages/RegisterPage.jsx';
 import Dashboard from './pages/Dashboard.jsx';
 import TopicsPage from './pages/TopicsPage.jsx';
 import NewsletterPage from './pages/NewsletterPage.jsx';
+import NewsletterListPage from './pages/NewsletterListPage.jsx';
 import SourcesPage from './pages/admin/SourcesPage.jsx';
 
 function App() {
@@ -80,6 +81,17 @@ function App() {
             <ProtectedRoute>
               <Layout>
                 <NewsletterPage />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+        
+        <Route
+          path="/newsletter/history"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <NewsletterListPage />
               </Layout>
             </ProtectedRoute>
           }

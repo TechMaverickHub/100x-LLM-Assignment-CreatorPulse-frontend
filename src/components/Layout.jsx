@@ -30,6 +30,7 @@ const Layout = ({ children }) => {
     { name: 'Dashboard', href: '/dashboard', icon: Home },
     { name: 'Topics', href: '/topics', icon: BookOpen },
     { name: 'Newsletter', href: '/newsletter', icon: Newspaper },
+    { name: 'Newsletter History', href: '/newsletter/history', icon: Newspaper },
   ];
 
   const adminNavigation = [

@@ -14,6 +14,9 @@ export const API_ROUTES = {
   NEWSLETTER_BY_DATE: "newsletter/", // Will be used with date parameter
   NEWSLETTER_HISTORY: "newsletter/history/",
   
+  // Mail Routes
+  MAIL_USER_LIST: "mail/user-list-filter",
+  
   // Topics Routes
   TOPICS_LIST: "topic/list",
   USER_TOPICS_LIST: "topic/user-topic-list",
@@ -52,6 +55,7 @@ export const FULL_API_URLS = {
   USER_TOPICS: buildApiUrl(API_ROUTES.USER_TOPICS),
   NEWSLETTER_LATEST: buildApiUrl(API_ROUTES.NEWSLETTER_LATEST),
   NEWSLETTER_HISTORY: buildApiUrl(API_ROUTES.NEWSLETTER_HISTORY),
+  MAIL_USER_LIST: buildApiUrl(API_ROUTES.MAIL_USER_LIST),
   TOPICS_LIST: buildApiUrl(API_ROUTES.TOPICS_LIST),
   USER_TOPICS_LIST: buildApiUrl(API_ROUTES.USER_TOPICS_LIST),
   USER_TOPICS_UPDATE: buildApiUrl(API_ROUTES.USER_TOPICS_UPDATE),
