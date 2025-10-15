@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchUserTopics } from '../store/topicSlice.js';
+import { isAdmin } from '../constants.js';
 import { BookOpen, Newspaper, TrendingUp, Users } from 'lucide-react';
 
 const Dashboard = () => {
@@ -10,8 +11,18 @@ const Dashboard = () => {
   const { userTopics, loading } = useSelector(state => state.topics);
 
   useEffect(() => {
+    console.log('Dashboard - Fetching user topics');
     dispatch(fetchUserTopics());
   }, [dispatch]);
+
+  // Debug logging
+  useEffect(() => {
+    console.log('Dashboard - State updated:', { 
+      userTopics: userTopics.length, 
+      loading,
+      userTopicsData: userTopics
+    });
+  }, [userTopics, loading]);
 
   const stats = [
     {
@@ -79,101 +90,104 @@ const Dashboard = () => {
       {/* Quick Actions */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         {/* Topics Section */}
-        <div className="bg-white rounded-xl shadow-sm border border-primary-200 p-6">
-          <div className="flex items-center justify-between">
-            <h2 className="text-lg font-medium text-gray-900">Your Topics</h2>
+        <div className="bg-white rounded-xl shadow-sm border border-primary-200 p-4">
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-base font-semibold text-gray-900">Your Topics</h2>
             <Link
               to="/topics"
-              className="text-sm font-medium text-primary-600 hover:text-primary-500"
+              className="text-xs font-medium text-primary-600 hover:text-primary-500 px-2 py-1 rounded-md hover:bg-primary-50 transition-colors"
             >
               Manage
             </Link>
           </div>
-          <div className="mt-4">
+          <div>
             {loading ? (
-              <div className="animate-pulse space-y-2">
-                <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-                <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+              <div className="animate-pulse flex items-center gap-2">
+                <div className="h-6 bg-gray-200 rounded-full w-16 flex-shrink-0"></div>
+                <div className="h-6 bg-gray-200 rounded-full w-20 flex-shrink-0"></div>
+                <div className="h-6 bg-gray-200 rounded-full w-14 flex-shrink-0"></div>
+                <div className="h-6 bg-gray-200 rounded-full w-18 flex-shrink-0"></div>
               </div>
             ) : userTopics.length > 0 ? (
-              <div className="space-y-2">
-                {userTopics.slice(0, 3).map((topic) => (
-                  <div key={topic.id} className="flex items-center text-sm text-gray-600">
-                    <div className="w-2 h-2 bg-primary-400 rounded-full mr-3"></div>
-                    {topic.name}
-                  </div>
+              <div className="flex items-center gap-2 overflow-x-auto">
+                {userTopics.slice(0, 6).map((userTopic) => (
+                  <span
+                    key={userTopic.id}
+                    className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-primary-100 text-primary-800 border border-primary-200 whitespace-nowrap flex-shrink-0"
+                  >
+                    {userTopic.topic.name}
+                  </span>
                 ))}
-                {userTopics.length > 3 && (
-                  <div className="text-sm text-gray-500">
-                    +{userTopics.length - 3} more topics
-                  </div>
+                {userTopics.length > 6 && (
+                  <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600 border border-gray-200 whitespace-nowrap flex-shrink-0">
+                    +{userTopics.length - 6} more
+                  </span>
                 )}
               </div>
             ) : (
-              <div className="text-sm text-gray-500">
-                No topics selected yet. <Link to="/topics" className="text-primary-600 hover:text-primary-500">Choose your interests</Link>
+              <div className="text-xs text-gray-500 bg-gray-50 rounded-lg p-3 border border-gray-100">
+                No topics selected yet. <Link to="/topics" className="text-primary-600 hover:text-primary-500 font-medium">Choose your interests</Link>
               </div>
             )}
           </div>
         </div>
 
         {/* Latest Newsletter */}
-        <div className="bg-white rounded-xl shadow-sm border border-primary-200 p-6">
-          <div className="flex items-center justify-between">
-            <h2 className="text-lg font-medium text-gray-900">Latest Newsletter</h2>
+        <div className="bg-white rounded-xl shadow-sm border border-primary-200 p-4">
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-base font-semibold text-gray-900">Latest Newsletter</h2>
             <Link
               to="/newsletter"
-              className="text-sm font-medium text-primary-600 hover:text-primary-500"
+              className="text-xs font-medium text-primary-600 hover:text-primary-500 px-2 py-1 rounded-md hover:bg-primary-50 transition-colors"
             >
               View All
             </Link>
           </div>
-          <div className="mt-4">
-            <div className="text-sm text-gray-500 mb-2">
+          <div>
+            <div className="text-xs text-gray-500 mb-3 bg-gray-50 rounded-lg p-2 border border-gray-100">
               Today's AI insights and updates
             </div>
-            <div className="space-y-2">
-              <div className="text-sm text-gray-600">
-                • Machine Learning breakthroughs this week
+            <div className="space-y-1.5 mb-3">
+              <div className="text-xs text-gray-600 flex items-center">
+                <div className="w-1 h-1 bg-primary-400 rounded-full mr-2"></div>
+                Machine Learning breakthroughs this week
               </div>
-              <div className="text-sm text-gray-600">
-                • New AI tools and frameworks
+              <div className="text-xs text-gray-600 flex items-center">
+                <div className="w-1 h-1 bg-primary-400 rounded-full mr-2"></div>
+                New AI tools and frameworks
               </div>
-              <div className="text-sm text-gray-600">
-                • Industry trends and analysis
+              <div className="text-xs text-gray-600 flex items-center">
+                <div className="w-1 h-1 bg-primary-400 rounded-full mr-2"></div>
+                Industry trends and analysis
               </div>
             </div>
-            <div className="mt-4">
-              <Link
-                to="/newsletter"
-                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700"
-              >
-                Read Newsletter
-              </Link>
-            </div>
+            <Link
+              to="/newsletter"
+              className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 transition-colors"
+            >
+              Read Newsletter
+            </Link>
           </div>
         </div>
       </div>
 
       {/* Admin Section (if superadmin) */}
-      {user?.role === 'superadmin' && (
-        <div className="bg-white rounded-xl shadow-sm border border-primary-200 p-6">
-          <div className="flex items-center justify-between">
-            <h2 className="text-lg font-medium text-gray-900">Admin Panel</h2>
-            <Users className="h-5 w-5 text-gray-400" />
+      {isAdmin(user?.role_id) && (
+        <div className="bg-white rounded-xl shadow-sm border border-primary-200 p-4">
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-base font-semibold text-gray-900">Admin Panel</h2>
+            <Users className="h-4 w-4 text-gray-400" />
           </div>
-          <div className="mt-4">
-            <p className="text-sm text-gray-600 mb-4">
+          <div>
+            <p className="text-xs text-gray-600 mb-3 bg-gray-50 rounded-lg p-2 border border-gray-100">
               Manage content sources and system settings.
             </p>
-            <div className="flex space-x-3">
-              <Link
-                to="/admin/sources"
-                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700"
-              >
-                Manage Sources
-              </Link>
-            </div>
+            <Link
+              to="/admin/sources"
+              className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 transition-colors"
+            >
+              Manage Sources
+            </Link>
           </div>
         </div>
       )}
