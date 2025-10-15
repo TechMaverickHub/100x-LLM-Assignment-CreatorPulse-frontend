@@ -70,19 +70,40 @@ const NewsletterPage = () => {
 
       {generatedNewsletter && (
         <div className="bg-white rounded-xl shadow-sm border border-primary-200 p-6">
-          <div className="flex items-center justify-between mb-4">
+          <div className="mb-4">
             <h2 className="text-xl font-semibold text-gray-900">Generated Newsletter</h2>
-            <HTMLViewer 
-              htmlContent={generatedNewsletter.results} 
-              title="Generated Newsletter Preview"
-            />
           </div>
-          <div className="bg-gray-50 rounded-lg p-4">
-            <div className="text-sm text-gray-600 mb-2">
-              Status: <span className="font-medium text-green-600">{generatedNewsletter.message}</span>
+          
+          {/* Direct HTML Preview */}
+          <div className="border border-gray-200 rounded-lg overflow-hidden">
+            <div className="bg-gray-50 px-4 py-2 border-b border-gray-200">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium text-gray-700">Newsletter Preview</span>
+                <button
+                  onClick={() => {
+                    const blob = new Blob([generatedNewsletter.results], { type: 'text/html' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = 'newsletter.html';
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                  }}
+                  className="text-xs px-2 py-1 bg-primary-600 text-white rounded hover:bg-primary-700 transition-colors"
+                >
+                  Download HTML
+                </button>
+              </div>
             </div>
-            <div className="text-sm text-gray-600">
-              HTML content generated successfully. Click "Preview" above to view the formatted newsletter.
+            <div className="h-96 overflow-y-auto">
+              <iframe
+                srcDoc={generatedNewsletter.results}
+                className="w-full h-full border-0"
+                title="Newsletter Preview"
+                sandbox="allow-same-origin"
+              />
             </div>
           </div>
         </div>
