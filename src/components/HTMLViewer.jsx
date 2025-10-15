@@ -30,7 +30,7 @@ const HTMLViewer = ({ htmlContent, title = "Newsletter Preview" }) => {
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto">
-      <div className="flex min-h-screen items-center justify-center p-4">
+      <div className="flex min-h-screen items-center justify-center p-2 sm:p-4">
         {/* Backdrop */}
         <div 
           className="fixed inset-0 bg-black bg-opacity-50 transition-opacity"
@@ -38,7 +38,7 @@ const HTMLViewer = ({ htmlContent, title = "Newsletter Preview" }) => {
         />
         
         {/* Modal */}
-        <div className="relative bg-white rounded-lg shadow-xl max-w-6xl w-full max-h-[90vh] flex flex-col">
+        <div className="relative bg-white rounded-lg shadow-xl max-w-7xl xl:max-w-8xl w-full max-h-[95vh] flex flex-col">
           {/* Header */}
           <div className="flex items-center justify-between p-4 border-b border-gray-200">
             <h3 className="text-lg font-semibold text-gray-900">{title}</h3>
@@ -60,10 +60,10 @@ const HTMLViewer = ({ htmlContent, title = "Newsletter Preview" }) => {
           </div>
           
           {/* Content */}
-          <div className="flex-1 overflow-hidden">
+          <div className="flex-1 overflow-hidden min-h-0">
             <iframe
               srcDoc={htmlContent}
-              className="w-full h-full border-0"
+              className="w-full h-full border-0 min-h-[600px]"
               title={title}
               sandbox="allow-same-origin"
             />
