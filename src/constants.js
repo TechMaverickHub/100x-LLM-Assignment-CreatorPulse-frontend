@@ -14,6 +14,7 @@ export const API_ROUTES = {
   NEWSLETTER_BY_DATE: "newsletter/", // Will be used with date parameter
   NEWSLETTER_HISTORY: "newsletter/history/",
   NEWSLETTER_GENERATE: "newsletter/generate",
+  NEWSLETTER_SEND: "newsletter/send-newsletter",
   
   // Mail Routes
   MAIL_USER_LIST: "mail/user-list-filter",

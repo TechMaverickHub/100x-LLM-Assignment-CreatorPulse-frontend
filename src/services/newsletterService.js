@@ -18,5 +18,19 @@ export const newsletterService = {
   generateNewsletter: async () => {
     const response = await api.post(API_ROUTES.NEWSLETTER_GENERATE);
     return response.data;
+  },
+
+  // Send newsletter
+  sendNewsletter: async (htmlContent, recipient = null) => {
+    const payload = {
+      html_content: htmlContent
+    };
+    
+    if (recipient) {
+      payload.recipient = recipient;
+    }
+    
+    const response = await api.post(API_ROUTES.NEWSLETTER_SEND, payload);
+    return response.data;
   }
 };
