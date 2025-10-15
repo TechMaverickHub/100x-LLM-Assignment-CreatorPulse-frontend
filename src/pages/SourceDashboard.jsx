@@ -22,7 +22,7 @@ const SourceDashboard = () => {
     sourceType: '',
     topic: '',
     page: 1,
-    pageSize: 12
+    pageSize: 15
   });
 
   const [showFilters, setShowFilters] = useState(false);
@@ -74,7 +74,7 @@ const SourceDashboard = () => {
       sourceType: '',
       topic: '',
       page: 1,
-      pageSize: 12
+      pageSize: 10
     });
   };
 
