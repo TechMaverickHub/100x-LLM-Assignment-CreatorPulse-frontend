@@ -66,7 +66,7 @@ const Dashboard = () => {
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
         {stats.map((stat) => (
           <div key={stat.name} className="bg-white overflow-hidden shadow-sm border border-primary-200 rounded-xl">
             <div className="p-5">
@@ -93,9 +93,9 @@ const Dashboard = () => {
       </div>
 
       {/* Quick Actions */}
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
         {/* Topics Section */}
-        <div className="bg-white rounded-xl shadow-sm border border-primary-200 p-4">
+        <div className="bg-white rounded-xl shadow-sm border border-primary-200 p-6">
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-base font-semibold text-gray-900">Your Topics</h2>
             <Link
@@ -138,33 +138,25 @@ const Dashboard = () => {
         </div>
 
          {/* Latest Newsletter */}
-         <div className="bg-white rounded-xl shadow-sm border border-primary-200 p-4">
+         <div className="bg-white rounded-xl shadow-sm border border-primary-200 p-6">
            <div className="mb-3">
              <h2 className="text-base font-semibold text-gray-900">Latest Newsletter</h2>
            </div>
            <div>
              {latestNewsletter ? (
-               <div>
-                 <div className="mb-3 bg-gray-50 rounded-lg border border-gray-100 max-h-48 overflow-y-auto">
-                   <div 
-                     className="p-3 text-sm"
-                     dangerouslySetInnerHTML={{ 
-                       __html: latestNewsletter.message.substring(0, latestNewsletter.message.length / 2) + '...'
-                     }}
-                   />
-                 </div>
-                 <div className="mb-3">
+               <div className="space-y-3">
+                 <div className="flex items-center justify-between">
                    <HTMLViewer 
                      htmlContent={latestNewsletter.message} 
                      title="Latest Newsletter Preview"
                    />
+                   <Link
+                     to="/newsletter/history"
+                     className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 transition-colors"
+                   >
+                     View All Newsletters
+                   </Link>
                  </div>
-                 <Link
-                   to="/newsletter/history"
-                   className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 transition-colors"
-                 >
-                   View All Newsletters
-                 </Link>
                </div>
              ) : (
                <div className="text-xs text-gray-500 bg-gray-50 rounded-lg p-3 border border-gray-100">
@@ -177,7 +169,7 @@ const Dashboard = () => {
 
       {/* Admin Section (if superadmin) */}
       {isAdmin(user?.role_id) && (
-        <div className="bg-white rounded-xl shadow-sm border border-primary-200 p-4">
+        <div className="bg-white rounded-xl shadow-sm border border-primary-200 p-6">
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-base font-semibold text-gray-900">Admin Panel</h2>
             <Users className="h-4 w-4 text-gray-400" />
