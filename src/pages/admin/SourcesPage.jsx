@@ -3,8 +3,9 @@ import { useDispatch, useSelector } from 'react-redux';
 import { fetchSources, deleteSource, setEditingSource, clearEditingSource, setFilters, clearFilters, setCurrentPage } from '../../store/sourceSlice.js';
 import { topicService } from '../../services/topicService.js';
 import { SOURCE_TYPE_CONSTANTS, SOURCE_TYPE_LABELS, TOPIC_LABELS } from '../../constants.js';
-import { Plus, Edit, Trash2, ExternalLink, Globe, Search, Filter, X } from 'lucide-react';
+import { Plus, Globe, Filter, X } from 'lucide-react';
 import SourceForm from '../../components/SourceForm.jsx';
+import SourceCard from '../../components/SourceCard.jsx';
 
 const SourcesPage = () => {
   const dispatch = useDispatch();
@@ -234,12 +235,10 @@ const SourcesPage = () => {
       <div className="bg-white rounded-xl shadow-sm border border-primary-200">
         {loading ? (
           <div className="p-6">
-            <div className="animate-pulse space-y-4">
-              {[...Array(3)].map((_, i) => (
-                <div key={i} className="border-b border-gray-200 pb-4">
-                  <div className="h-4 bg-gray-200 rounded w-1/4 mb-2"></div>
-                  <div className="h-3 bg-gray-200 rounded w-1/2 mb-1"></div>
-                  <div className="h-3 bg-gray-200 rounded w-3/4"></div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {[...Array(8)].map((_, i) => (
+                <div key={i} className="animate-pulse">
+                  <div className="bg-gray-200 rounded-lg h-48"></div>
                 </div>
               ))}
             </div>
@@ -262,61 +261,19 @@ const SourcesPage = () => {
             </div>
           </div>
         ) : (
-          <div className="divide-y divide-gray-200">
-            {sources.map((source) => (
-              <div key={source.id} className="p-6">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center">
-                      <h3 className="text-lg font-medium text-gray-900">
-                        {source.name}
-                      </h3>
-                      <span className={`ml-3 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                        source.is_active 
-                          ? 'bg-green-100 text-green-800' 
-                          : 'bg-red-100 text-red-800'
-                      }`}>
-                        {source.is_active ? 'Active' : 'Inactive'}
-                      </span>
-                    </div>
-                    <p className="mt-1 text-sm text-gray-600">
-                      {source.description}
-                    </p>
-                    <div className="mt-2 flex items-center text-sm text-gray-500">
-                      <Globe className="h-4 w-4 mr-1" />
-                      <a
-                        href={source.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-primary-600 hover:text-primary-700 flex items-center"
-                      >
-                        {source.url}
-                        <ExternalLink className="h-3 w-3 ml-1" />
-                      </a>
-                    </div>
-                    <div className="mt-2 text-xs text-gray-500">
-                      Type: {source.source_type?.name || 'Unknown'} • 
-                      Topic: {source.topic?.name || 'Unknown'} • 
-                      ID: {source.pk || source.id}
-                    </div>
-                  </div>
-                  <div className="ml-4 flex-shrink-0 flex space-x-2">
-                    <button
-                      onClick={() => handleEdit(source)}
-                      className="p-2 text-gray-400 hover:text-primary-600 transition-colors"
-                    >
-                      <Edit className="h-4 w-4" />
-                    </button>
-                    <button
-                      onClick={() => handleDelete(source.id)}
-                      className="p-2 text-gray-400 hover:text-red-600 transition-colors"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </button>
-                  </div>
-                </div>
-              </div>
-            ))}
+          <div className="p-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {sources.map((source) => (
+                <SourceCard
+                  key={source.pk || source.id}
+                  source={source}
+                  showActions={true}
+                  isAdmin={true}
+                  onEdit={handleEdit}
+                  onDelete={handleDelete}
+                />
+              ))}
+            </div>
           </div>
         )}
         
