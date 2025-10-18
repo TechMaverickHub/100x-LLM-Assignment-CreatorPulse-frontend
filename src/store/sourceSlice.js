@@ -4,9 +4,9 @@ import { sourceService } from '../services/sourceService.js';
 // Async thunks
 export const fetchSources = createAsyncThunk(
   'sources/fetchSources',
-  async (_, { rejectWithValue }) => {
+  async (params = {}, { rejectWithValue }) => {
     try {
-      const response = await sourceService.getSources();
+      const response = await sourceService.getSources(params);
       return response;
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || 'Failed to fetch sources');
@@ -52,6 +52,19 @@ export const deleteSource = createAsyncThunk(
 
 const initialState = {
   sources: [],
+  pagination: {
+    count: 0,
+    next: null,
+    previous: null,
+    currentPage: 1
+  },
+  filters: {
+    name: '',
+    url: '',
+    sourceType: '',
+    topic: '',
+    isActive: ''
+  },
   loading: false,
   error: null,
   editingSource: null
@@ -69,6 +82,21 @@ const sourceSlice = createSlice({
     },
     clearError: (state) => {
       state.error = null;
+    },
+    setFilters: (state, action) => {
+      state.filters = { ...state.filters, ...action.payload };
+    },
+    clearFilters: (state) => {
+      state.filters = {
+        name: '',
+        url: '',
+        sourceType: '',
+        topic: '',
+        isActive: ''
+      };
+    },
+    setCurrentPage: (state, action) => {
+      state.pagination.currentPage = action.payload;
     }
   },
   extraReducers: (builder) => {
@@ -80,7 +108,13 @@ const sourceSlice = createSlice({
       })
       .addCase(fetchSources.fulfilled, (state, action) => {
         state.loading = false;
-        state.sources = action.payload;
+        state.sources = action.payload.results || [];
+        state.pagination = {
+          count: action.payload.count || 0,
+          next: action.payload.next,
+          previous: action.payload.previous,
+          currentPage: state.pagination.currentPage
+        };
         state.error = null;
       })
       .addCase(fetchSources.rejected, (state, action) => {
@@ -94,7 +128,7 @@ const sourceSlice = createSlice({
       })
       .addCase(createSource.fulfilled, (state, action) => {
         state.loading = false;
-        state.sources.push(action.payload);
+        // Refresh the sources list instead of just adding one
         state.error = null;
       })
       .addCase(createSource.rejected, (state, action) => {
@@ -135,5 +169,5 @@ const sourceSlice = createSlice({
   }
 });
 
-export const { setEditingSource, clearEditingSource, clearError } = sourceSlice.actions;
+export const { setEditingSource, clearEditingSource, clearError, setFilters, clearFilters, setCurrentPage } = sourceSlice.actions;
 export default sourceSlice.reducer;

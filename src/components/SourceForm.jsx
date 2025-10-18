@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { createSource, updateSource, clearError } from '../store/sourceSlice.js';
+import { topicService } from '../services/topicService.js';
+import { SOURCE_TYPE_CONSTANTS, SOURCE_TYPE_LABELS } from '../constants.js';
 import { X } from 'lucide-react';
 
 const SourceForm = ({ source, onSuccess, onCancel }) => {
@@ -11,9 +13,13 @@ const SourceForm = ({ source, onSuccess, onCancel }) => {
     name: '',
     description: '',
     url: '',
-    source_type: 'website',
+    source_type: SOURCE_TYPE_CONSTANTS.RSS,
+    topic: '',
     is_active: true
   });
+  
+  const [topics, setTopics] = useState([]);
+  const [topicsLoading, setTopicsLoading] = useState(false);
 
   useEffect(() => {
     if (source) {
@@ -21,17 +27,35 @@ const SourceForm = ({ source, onSuccess, onCancel }) => {
         name: source.name || '',
         description: source.description || '',
         url: source.url || '',
-        source_type: source.source_type || 'website',
+        source_type: source.source_type || SOURCE_TYPE_CONSTANTS.RSS,
+        topic: source.topic || '',
         is_active: source.is_active !== undefined ? source.is_active : true
       });
     }
   }, [source]);
 
+  // Fetch topics when component mounts
+  useEffect(() => {
+    const fetchTopics = async () => {
+      setTopicsLoading(true);
+      try {
+        const response = await topicService.getTopics();
+        setTopics(response.results || []);
+      } catch (error) {
+        console.error('Failed to fetch topics:', error);
+      } finally {
+        setTopicsLoading(false);
+      }
+    };
+
+    fetchTopics();
+  }, []);
+
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     setFormData(prev => ({
       ...prev,
-      [name]: type === 'checkbox' ? checked : value
+      [name]: type === 'checkbox' ? checked : (type === 'number' ? parseInt(value, 10) : value)
     }));
     
     if (error) {
@@ -127,37 +151,49 @@ const SourceForm = ({ source, onSuccess, onCancel }) => {
 
         <div>
           <label htmlFor="source_type" className="block text-sm font-medium text-gray-700">
-            Source Type
+            Source Type *
           </label>
           <select
             name="source_type"
             id="source_type"
+            required
             className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
             value={formData.source_type}
             onChange={handleChange}
           >
-            <option value="website">Website</option>
-            <option value="blog">Blog</option>
-            <option value="news">News Site</option>
-            <option value="academic">Academic Journal</option>
-            <option value="social">Social Media</option>
-            <option value="other">Other</option>
+            {Object.entries(SOURCE_TYPE_LABELS).map(([key, label]) => (
+              <option key={key} value={parseInt(key)}>
+                {label}
+              </option>
+            ))}
           </select>
         </div>
 
-        <div className="flex items-center">
-          <input
-            type="checkbox"
-            name="is_active"
-            id="is_active"
-            className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
-            checked={formData.is_active}
-            onChange={handleChange}
-          />
-          <label htmlFor="is_active" className="ml-2 block text-sm text-gray-900">
-            Active (include in newsletter generation)
+        <div>
+          <label htmlFor="topic" className="block text-sm font-medium text-gray-700">
+            Topic *
           </label>
+          <select
+            name="topic"
+            id="topic"
+            required
+            className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
+            value={formData.topic}
+            onChange={handleChange}
+            disabled={topicsLoading}
+          >
+            <option value="">Select a topic</option>
+            {topics.map((topic) => (
+              <option key={topic.id} value={topic.id}>
+                {topic.name}
+              </option>
+            ))}
+          </select>
+          {topicsLoading && (
+            <p className="mt-1 text-sm text-gray-500">Loading topics...</p>
+          )}
         </div>
+
       </div>
 
       <div className="px-6 py-4 bg-gray-50 flex justify-end space-x-3">

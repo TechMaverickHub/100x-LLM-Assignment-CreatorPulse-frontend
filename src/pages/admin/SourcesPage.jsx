@@ -1,17 +1,35 @@
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchSources, deleteSource, setEditingSource, clearEditingSource } from '../../store/sourceSlice.js';
-import { Plus, Edit, Trash2, ExternalLink, Globe } from 'lucide-react';
+import { fetchSources, deleteSource, setEditingSource, clearEditingSource, setFilters, clearFilters, setCurrentPage } from '../../store/sourceSlice.js';
+import { topicService } from '../../services/topicService.js';
+import { SOURCE_TYPE_CONSTANTS, SOURCE_TYPE_LABELS, TOPIC_LABELS } from '../../constants.js';
+import { Plus, Edit, Trash2, ExternalLink, Globe, Search, Filter, X } from 'lucide-react';
 import SourceForm from '../../components/SourceForm.jsx';
 
 const SourcesPage = () => {
   const dispatch = useDispatch();
-  const { sources, loading, error, editingSource } = useSelector(state => state.sources);
+  const { sources, loading, error, editingSource, pagination, filters } = useSelector(state => state.sources);
   const [showForm, setShowForm] = useState(false);
+  const [showFilters, setShowFilters] = useState(false);
+  const [localFilters, setLocalFilters] = useState(filters);
+  const [topics, setTopics] = useState([]);
 
   useEffect(() => {
-    dispatch(fetchSources());
-  }, [dispatch]);
+    dispatch(fetchSources(filters));
+  }, [dispatch, filters]);
+
+  // Fetch topics for filter dropdown
+  useEffect(() => {
+    const fetchTopics = async () => {
+      try {
+        const response = await topicService.getTopics();
+        setTopics(response.results || []);
+      } catch (error) {
+        console.error('Failed to fetch topics:', error);
+      }
+    };
+    fetchTopics();
+  }, []);
 
   const handleDelete = async (id) => {
     if (window.confirm('Are you sure you want to delete this source?')) {
@@ -32,7 +50,33 @@ const SourcesPage = () => {
   const handleFormSuccess = () => {
     setShowForm(false);
     dispatch(clearEditingSource());
-    dispatch(fetchSources());
+    dispatch(fetchSources(filters));
+  };
+
+  const handleFilterChange = (key, value) => {
+    setLocalFilters(prev => ({ ...prev, [key]: value }));
+  };
+
+  const applyFilters = () => {
+    dispatch(setFilters(localFilters));
+    dispatch(setCurrentPage(1));
+  };
+
+  const clearAllFilters = () => {
+    setLocalFilters({
+      name: '',
+      url: '',
+      sourceType: '',
+      topic: '',
+      isActive: ''
+    });
+    dispatch(clearFilters());
+    dispatch(setCurrentPage(1));
+  };
+
+  const handlePageChange = (page) => {
+    dispatch(setCurrentPage(page));
+    dispatch(fetchSources({ ...filters, page }));
   };
 
   return (
@@ -46,13 +90,22 @@ const SourcesPage = () => {
               Manage the sources that feed content into your Creator Pulse newsletter.
             </p>
           </div>
-          <button
-            onClick={() => setShowForm(true)}
-            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            Add Source
-          </button>
+          <div className="flex space-x-3">
+            <button
+              onClick={() => setShowFilters(!showFilters)}
+              className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
+            >
+              <Filter className="h-4 w-4 mr-2" />
+              Filters
+            </button>
+            <button
+              onClick={() => setShowForm(true)}
+              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Add Source
+            </button>
+          </div>
         </div>
       </div>
 
@@ -60,6 +113,120 @@ const SourcesPage = () => {
       {error && (
         <div className="bg-red-50 border border-red-200 rounded-md p-4">
           <div className="text-sm text-red-700">{error}</div>
+        </div>
+      )}
+
+      {/* Filters */}
+      {showFilters && (
+        <div className="bg-white rounded-xl shadow-sm border border-primary-200 p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-medium text-gray-900">Filter Sources</h3>
+            <button
+              onClick={() => setShowFilters(false)}
+              className="text-gray-400 hover:text-gray-600"
+            >
+              <X className="h-5 w-5" />
+            </button>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+            <div>
+              <label htmlFor="filter-name" className="block text-sm font-medium text-gray-700 mb-1">
+                Name
+              </label>
+              <input
+                type="text"
+                id="filter-name"
+                className="w-full border-gray-300 rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
+                value={localFilters.name}
+                onChange={(e) => handleFilterChange('name', e.target.value)}
+                placeholder="Filter by name"
+              />
+            </div>
+            
+            <div>
+              <label htmlFor="filter-url" className="block text-sm font-medium text-gray-700 mb-1">
+                URL
+              </label>
+              <input
+                type="text"
+                id="filter-url"
+                className="w-full border-gray-300 rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
+                value={localFilters.url}
+                onChange={(e) => handleFilterChange('url', e.target.value)}
+                placeholder="Filter by URL"
+              />
+            </div>
+            
+            <div>
+              <label htmlFor="filter-source-type" className="block text-sm font-medium text-gray-700 mb-1">
+                Source Type
+              </label>
+              <select
+                id="filter-source-type"
+                className="w-full border-gray-300 rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
+                value={localFilters.sourceType}
+                onChange={(e) => handleFilterChange('sourceType', e.target.value)}
+              >
+                <option value="">All Types</option>
+                {Object.entries(SOURCE_TYPE_LABELS).map(([key, label]) => (
+                  <option key={key} value={parseInt(key)}>
+                    {label}
+                  </option>
+                ))}
+              </select>
+            </div>
+            
+            <div>
+              <label htmlFor="filter-topic" className="block text-sm font-medium text-gray-700 mb-1">
+                Topic
+              </label>
+              <select
+                id="filter-topic"
+                className="w-full border-gray-300 rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
+                value={localFilters.topic}
+                onChange={(e) => handleFilterChange('topic', e.target.value)}
+              >
+                <option value="">All Topics</option>
+                {topics.map((topic) => (
+                  <option key={topic.id} value={topic.id}>
+                    {topic.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+            
+            <div>
+              <label htmlFor="filter-is-active" className="block text-sm font-medium text-gray-700 mb-1">
+                Status
+              </label>
+              <select
+                id="filter-is-active"
+                className="w-full border-gray-300 rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
+                value={localFilters.isActive}
+                onChange={(e) => handleFilterChange('isActive', e.target.value)}
+              >
+                <option value="">All Status</option>
+                <option value="true">Active</option>
+                <option value="false">Inactive</option>
+              </select>
+            </div>
+          </div>
+          
+          <div className="flex justify-end space-x-3 mt-4">
+            <button
+              onClick={clearAllFilters}
+              className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
+            >
+              Clear All
+            </button>
+            <button
+              onClick={applyFilters}
+              className="px-4 py-2 text-sm font-medium text-white bg-primary-600 border border-transparent rounded-md hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
+            >
+              Apply Filters
+            </button>
+          </div>
         </div>
       )}
 
@@ -128,7 +295,9 @@ const SourcesPage = () => {
                       </a>
                     </div>
                     <div className="mt-2 text-xs text-gray-500">
-                      Type: {source.source_type} • Last updated: {new Date(source.updated_at).toLocaleDateString()}
+                      Type: {source.source_type?.name || 'Unknown'} • 
+                      Topic: {source.topic?.name || 'Unknown'} • 
+                      ID: {source.pk || source.id}
                     </div>
                   </div>
                   <div className="ml-4 flex-shrink-0 flex space-x-2">
@@ -148,6 +317,33 @@ const SourcesPage = () => {
                 </div>
               </div>
             ))}
+          </div>
+        )}
+        
+        {/* Pagination */}
+        {!loading && sources.length > 0 && (pagination.next || pagination.previous) && (
+          <div className="px-6 py-4 border-t border-gray-200 bg-gray-50">
+            <div className="flex items-center justify-between">
+              <div className="text-sm text-gray-700">
+                Showing {((pagination.currentPage - 1) * 10) + 1} to {Math.min(pagination.currentPage * 10, pagination.count)} of {pagination.count} sources
+              </div>
+              <div className="flex space-x-2">
+                <button
+                  onClick={() => handlePageChange(pagination.currentPage - 1)}
+                  disabled={!pagination.previous}
+                  className="px-3 py-1 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Previous
+                </button>
+                <button
+                  onClick={() => handlePageChange(pagination.currentPage + 1)}
+                  disabled={!pagination.next}
+                  className="px-3 py-1 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Next
+                </button>
+              </div>
+            </div>
           </div>
         )}
       </div>

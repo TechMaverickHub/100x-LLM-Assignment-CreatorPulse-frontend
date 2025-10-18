@@ -29,6 +29,8 @@ export const API_ROUTES = {
   
   // Admin Routes
   ADMIN_SOURCES: "admin/sources/",
+  SOURCE_CREATE: "source/",
+  SOURCE_LIST_FILTER: "source/list-filter",
   
   // User Source Routes
   USER_SOURCES: "source/user-source-list-filter",
@@ -110,5 +112,7 @@ export const FULL_API_URLS = {
   USER_TOPICS_LIST: buildApiUrl(API_ROUTES.USER_TOPICS_LIST),
   USER_TOPICS_UPDATE: buildApiUrl(API_ROUTES.USER_TOPICS_UPDATE),
   ADMIN_SOURCES: buildApiUrl(API_ROUTES.ADMIN_SOURCES),
+  SOURCE_CREATE: buildApiUrl(API_ROUTES.SOURCE_CREATE),
+  SOURCE_LIST_FILTER: buildApiUrl(API_ROUTES.SOURCE_LIST_FILTER),
   USER_SOURCES: buildApiUrl(API_ROUTES.USER_SOURCES),
 };
