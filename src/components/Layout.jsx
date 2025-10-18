@@ -22,22 +22,35 @@ const Layout = ({ children }) => {
   const location = useLocation();
   const navigate = useNavigate();
 
+
   const handleLogout = () => {
     dispatch(logout());
     navigate('/login');
   };
 
-  const navigation = [
-    { name: 'Dashboard', href: '/dashboard', icon: Home },
-    { name: 'Topics', href: '/topics', icon: BookOpen },
-    { name: 'Sources', href: '/sources', icon: Globe },
-    { name: 'Newsletter', href: '/newsletter', icon: Newspaper },
-    { name: 'Newsletter History', href: '/newsletter/history', icon: Newspaper },
-  ];
+  // Get navigation based on user role
+  const getNavigation = () => {
+    // Get role_id from Redux store (check both user.role_id and user.role.pk) or localStorage as fallback
+    const roleId = user?.role_id || user?.role?.pk || localStorage.getItem('user_role_id');
+    
+    
+    if (isAdmin(roleId)) {
+      return [
+        { name: 'Admin Dashboard', href: '/admin/dashboard', icon: Home },
+        { name: 'Manage Sources', href: '/admin/sources', icon: Settings },
+      ];
+    } else {
+      return [
+        { name: 'Dashboard', href: '/dashboard', icon: Home },
+        { name: 'Topics', href: '/topics', icon: BookOpen },
+        { name: 'Sources', href: '/sources', icon: Globe },
+        { name: 'Newsletter', href: '/newsletter', icon: Newspaper },
+        { name: 'Newsletter History', href: '/newsletter/history', icon: Newspaper },
+      ];
+    }
+  };
 
-  const adminNavigation = [
-    { name: 'Sources', href: '/admin/sources', icon: Settings },
-  ];
+  const navigation = getNavigation();
 
   if (!isAuthenticated) {
     return children;
@@ -80,23 +93,6 @@ const Layout = ({ children }) => {
                   </Link>
                 );
               })}
-              {isAdmin(user?.role_id) && adminNavigation.map((item) => {
-                const isActive = location.pathname === item.href;
-                return (
-                  <Link
-                    key={item.name}
-                    to={item.href}
-                    className={`${
-                      isActive
-                        ? 'bg-blue-100 text-primary-900'
-                        : 'text-gray-600 hover:bg-primary-50 hover:text-primary-900'
-                    } group flex items-center px-2 py-2 text-base font-medium rounded-md`}
-                  >
-                    <item.icon className="mr-4 h-6 w-6" />
-                    {item.name}
-                  </Link>
-                );
-              })}
             </nav>
           </div>
         </div>
@@ -111,23 +107,6 @@ const Layout = ({ children }) => {
             </div>
             <nav className="mt-5 flex-1 px-2 space-y-1">
               {navigation.map((item) => {
-                const isActive = location.pathname === item.href;
-                return (
-                  <Link
-                    key={item.name}
-                    to={item.href}
-                    className={`${
-                      isActive
-                        ? 'bg-blue-100 text-primary-900'
-                        : 'text-gray-600 hover:bg-primary-50 hover:text-primary-900'
-                    } group flex items-center px-2 py-2 text-sm font-medium rounded-md`}
-                  >
-                    <item.icon className="mr-3 h-5 w-5" />
-                    {item.name}
-                  </Link>
-                );
-              })}
-              {isAdmin(user?.role_id) && adminNavigation.map((item) => {
                 const isActive = location.pathname === item.href;
                 return (
                   <Link

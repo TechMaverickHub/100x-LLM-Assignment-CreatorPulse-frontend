@@ -47,7 +47,9 @@ export const getRoleName = (roleId) => {
 
 // Helper function to check if user is admin
 export const isAdmin = (roleId) => {
-  return roleId === 1; // superadmin
+  // Handle both string and number inputs
+  const numericRoleId = typeof roleId === 'string' ? parseInt(roleId, 10) : roleId;
+  return numericRoleId === 1; // superadmin
 };
 
 // Source Type Constants

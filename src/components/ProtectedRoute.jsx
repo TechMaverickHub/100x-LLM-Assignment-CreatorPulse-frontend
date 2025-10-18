@@ -18,7 +18,10 @@ const ProtectedRoute = ({ children, requireAdmin = false }) => {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  if (requireAdmin && !isAdmin(user?.role_id)) {
+  // Get role_id from Redux store (check both user.role_id and user.role.pk) or localStorage as fallback
+  const roleId = user?.role_id || user?.role?.pk || localStorage.getItem('user_role_id');
+  
+  if (requireAdmin && !isAdmin(roleId)) {
     return <Navigate to="/dashboard" replace />;
   }
 

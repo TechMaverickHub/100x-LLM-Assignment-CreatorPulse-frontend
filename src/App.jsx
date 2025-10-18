@@ -3,11 +3,13 @@ import { useSelector } from 'react-redux';
 import Layout from './components/Layout.jsx';
 import ProtectedRoute from './components/ProtectedRoute.jsx';
 import AuthProvider from './components/AuthProvider.jsx';
+import RoleBasedRedirect from './components/RoleBasedRedirect.jsx';
 
 // Pages
 import LoginPage from './pages/LoginPage.jsx';
 import RegisterPage from './pages/RegisterPage.jsx';
 import Dashboard from './pages/Dashboard.jsx';
+import AdminDashboard from './pages/AdminDashboard.jsx';
 import TopicsPage from './pages/TopicsPage.jsx';
 import NewsletterPage from './pages/NewsletterPage.jsx';
 import NewsletterListPage from './pages/NewsletterListPage.jsx';
@@ -35,11 +37,11 @@ function App() {
         {/* Public Routes */}
         <Route 
           path="/login" 
-          element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <LoginPage />} 
+          element={isAuthenticated ? <RoleBasedRedirect /> : <LoginPage />} 
         />
         <Route 
           path="/register" 
-          element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <RegisterPage />} 
+          element={isAuthenticated ? <RoleBasedRedirect /> : <RegisterPage />} 
         />
 
         {/* Protected Routes */}
@@ -48,7 +50,7 @@ function App() {
           element={
             <ProtectedRoute>
               <Layout>
-                <Navigate to="/dashboard" replace />
+                <RoleBasedRedirect />
               </Layout>
             </ProtectedRoute>
           }
@@ -60,6 +62,18 @@ function App() {
             <ProtectedRoute>
               <Layout>
                 <Dashboard />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Admin Dashboard */}
+        <Route
+          path="/admin/dashboard"
+          element={
+            <ProtectedRoute requireAdmin={true}>
+              <Layout>
+                <AdminDashboard />
               </Layout>
             </ProtectedRoute>
           }
@@ -122,7 +136,7 @@ function App() {
         />
 
         {/* Catch all route */}
-        <Route path="*" element={<Navigate to="/dashboard" replace />} />
+        <Route path="*" element={<RoleBasedRedirect />} />
       </Routes>
     </AuthProvider>
   );
