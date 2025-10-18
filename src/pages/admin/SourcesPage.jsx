@@ -43,7 +43,7 @@ const SourcesPage = () => {
           <div>
             <h1 className="text-2xl font-bold text-gray-900">Content Sources</h1>
             <p className="mt-2 text-gray-600">
-              Manage the sources that feed content into your AI newsletter.
+              Manage the sources that feed content into your Creator Pulse newsletter.
             </p>
           </div>
           <button

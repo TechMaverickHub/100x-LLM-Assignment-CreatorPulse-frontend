@@ -1,5 +1,6 @@
 {
-  "name": "100x-LLM-Assignment-CreatorPulse-frontend",
+  "name": "creator-pulse-frontend",
+  "description": "Creator Pulse - Your daily feed curator and newsletter drafting tool",
   "version": "1.0.0",
   "type": "module",
   "scripts": {

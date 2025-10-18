@@ -139,7 +139,7 @@ const NewsletterListPage = () => {
           <div>
             <h1 className="text-2xl font-bold text-gray-900">Newsletter History</h1>
             <p className="mt-2 text-gray-600">
-              View and manage your sent newsletters
+              View and manage your Creator Pulse newsletters
             </p>
             {totalNewsletterCount > 0 && (
               <div className="mt-3 inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-primary-100 text-primary-800">

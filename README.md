@@ -1,6 +1,6 @@
-# AI Newsletter Frontend
+# Creator Pulse - Your daily feed curator and newsletter drafting tool
 
-A React-based web application for managing AI newsletters with user authentication, topic selection, and admin functionality.
+A React-based web application for curating daily feeds and drafting personalized newsletters with user authentication, topic selection, and admin functionality.
 
 ## Features
 

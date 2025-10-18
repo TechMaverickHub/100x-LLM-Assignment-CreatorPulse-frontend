@@ -59,7 +59,7 @@ const TopicsPage = () => {
       <div className="bg-white rounded-xl shadow-sm border border-primary-200 p-6">
         <h1 className="text-2xl font-bold text-gray-900">Select Your Topics</h1>
         <p className="mt-2 text-gray-600">
-          Choose the AI topics you're interested in to receive personalized newsletters.
+          Choose the topics you're interested in to receive personalized newsletters from Creator Pulse.
         </p>
       </div>
 
