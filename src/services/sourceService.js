@@ -34,15 +34,21 @@ export const sourceService = {
     return response.data;
   },
 
+  // Get source details by ID (admin only)
+  getSourceById: async (id) => {
+    const response = await api.get(`${API_ROUTES.SOURCE_DETAIL}${id}`);
+    return response.data;
+  },
+
   // Update source (admin only)
   updateSource: async (id, sourceData) => {
-    const response = await api.put(`${API_ROUTES.ADMIN_SOURCES}${id}/`, sourceData);
+    const response = await api.patch(`${API_ROUTES.SOURCE_UPDATE}${id}`, sourceData);
     return response.data;
   },
 
   // Delete source (admin only)
   deleteSource: async (id) => {
-    const response = await api.delete(`${API_ROUTES.ADMIN_SOURCES}${id}/`);
+    const response = await api.delete(`${API_ROUTES.SOURCE_DELETE}${id}`);
     return response.data;
   },
 

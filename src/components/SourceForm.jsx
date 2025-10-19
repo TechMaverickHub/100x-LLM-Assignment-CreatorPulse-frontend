@@ -27,8 +27,10 @@ const SourceForm = ({ source, onSuccess, onCancel }) => {
         name: source.name || '',
         description: source.description || '',
         url: source.url || '',
-        source_type: source.source_type || SOURCE_TYPE_CONSTANTS.RSS,
-        topic: source.topic || '',
+        source_type: typeof source.source_type === 'object' ? 
+          Object.keys(SOURCE_TYPE_LABELS).find(key => SOURCE_TYPE_LABELS[key] === source.source_type.name) || SOURCE_TYPE_CONSTANTS.RSS :
+          source.source_type || SOURCE_TYPE_CONSTANTS.RSS,
+        topic: typeof source.topic === 'object' ? source.topic.id : source.topic || '',
         is_active: source.is_active !== undefined ? source.is_active : true
       });
     }
@@ -68,7 +70,10 @@ const SourceForm = ({ source, onSuccess, onCancel }) => {
     
     try {
       if (source) {
-        await dispatch(updateSource({ id: source.id, sourceData: formData })).unwrap();
+        const sourceId = source.pk || source.id;
+        console.log('Updating source with ID:', sourceId);
+        console.log('Source object:', source);
+        await dispatch(updateSource({ id: sourceId, sourceData: formData })).unwrap();
       } else {
         await dispatch(createSource(formData)).unwrap();
       }

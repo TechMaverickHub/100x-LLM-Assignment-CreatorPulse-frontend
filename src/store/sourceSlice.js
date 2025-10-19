@@ -14,6 +14,18 @@ export const fetchSources = createAsyncThunk(
   }
 );
 
+export const getSourceById = createAsyncThunk(
+  'sources/getSourceById',
+  async (id, { rejectWithValue }) => {
+    try {
+      const response = await sourceService.getSourceById(id);
+      return response;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to fetch source details');
+    }
+  }
+);
+
 export const createSource = createAsyncThunk(
   'sources/createSource',
   async (sourceData, { rejectWithValue }) => {
@@ -118,6 +130,20 @@ const sourceSlice = createSlice({
         state.error = null;
       })
       .addCase(fetchSources.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      // Get source by ID
+      .addCase(getSourceById.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(getSourceById.fulfilled, (state, action) => {
+        state.loading = false;
+        state.editingSource = action.payload.results;
+        state.error = null;
+      })
+      .addCase(getSourceById.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       })
