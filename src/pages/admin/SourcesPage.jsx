@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchSources, deleteSource, setEditingSource, clearEditingSource, setFilters, clearFilters, setCurrentPage, getSourceById } from '../../store/sourceSlice.js';
+import { fetchSources, setEditingSource, clearEditingSource, setFilters, clearFilters, setCurrentPage, getSourceById } from '../../store/sourceSlice.js';
 import { topicService } from '../../services/topicService.js';
 import { SOURCE_TYPE_CONSTANTS, SOURCE_TYPE_LABELS, TOPIC_LABELS } from '../../constants.js';
-import { Plus, Edit, Trash2, ExternalLink, Globe, Search, Filter, X } from 'lucide-react';
+import { Plus, Edit, ExternalLink, Globe, Search, Filter, X, CheckCircle, AlertCircle } from 'lucide-react';
 import SourceForm from '../../components/SourceForm.jsx';
 
 const SourcesPage = () => {
@@ -31,20 +31,6 @@ const SourcesPage = () => {
     fetchTopics();
   }, []);
 
-  const handleDelete = async (source) => {
-    if (window.confirm('Are you sure you want to delete this source?')) {
-      console.log('Source object for delete:', source);
-      const sourceId = source.pk || source.id || source.source_id;
-      console.log('Source ID for delete:', sourceId);
-      
-      if (!sourceId) {
-        console.error('No valid source ID found in source object');
-        return;
-      }
-      
-      dispatch(deleteSource(sourceId));
-    }
-  };
 
   const handleEdit = async (source) => {
     console.log('Source object for edit:', source);
@@ -99,6 +85,46 @@ const SourcesPage = () => {
   const handlePageChange = (page) => {
     dispatch(setCurrentPage(page));
     dispatch(fetchSources({ ...filters, page }));
+  };
+
+  const getFaviconUrl = (url) => {
+    try {
+      const domain = new URL(url).hostname;
+      return `https://www.google.com/s2/favicons?domain=${domain}&sz=32`;
+    } catch {
+      return null;
+    }
+  };
+
+  const getDomainFromUrl = (url) => {
+    try {
+      return new URL(url).hostname;
+    } catch {
+      return url;
+    }
+  };
+
+  const getSourceTypeColor = (sourceTypeName) => {
+    const colors = {
+      'RSS': 'bg-blue-100 text-blue-800',
+      'API': 'bg-green-100 text-green-800',
+      'Reddit': 'bg-orange-100 text-orange-800',
+      'ArXiv': 'bg-purple-100 text-purple-800',
+      'Twitter': 'bg-sky-100 text-sky-800',
+      'YouTube': 'bg-red-100 text-red-800',
+      'Blog': 'bg-gray-100 text-gray-800'
+    };
+    return colors[sourceTypeName] || 'bg-gray-100 text-gray-800';
+  };
+
+  const getTopicColor = (topicName) => {
+    const colors = {
+      'AI': 'bg-purple-100 text-purple-800',
+      'Blockchain': 'bg-yellow-100 text-yellow-800',
+      'Cybersecurity': 'bg-red-100 text-red-800',
+      'IoT': 'bg-green-100 text-green-800'
+    };
+    return colors[topicName] || 'bg-gray-100 text-gray-800';
   };
 
   return (
@@ -252,24 +278,22 @@ const SourcesPage = () => {
         </div>
       )}
 
-      {/* Sources List */}
+      {/* Sources Grid */}
       <div className="bg-white rounded-xl shadow-sm border border-primary-200">
         {loading ? (
           <div className="p-6">
-            <div className="animate-pulse space-y-4">
-              {[...Array(3)].map((_, i) => (
-                <div key={i} className="border-b border-gray-200 pb-4">
-                  <div className="h-4 bg-gray-200 rounded w-1/4 mb-2"></div>
-                  <div className="h-3 bg-gray-200 rounded w-1/2 mb-1"></div>
-                  <div className="h-3 bg-gray-200 rounded w-3/4"></div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {[...Array(8)].map((_, i) => (
+                <div key={i} className="animate-pulse">
+                  <div className="bg-gray-200 rounded-lg h-48"></div>
                 </div>
               ))}
             </div>
           </div>
         ) : sources.length === 0 ? (
-          <div className="p-6 text-center">
+          <div className="p-12 text-center">
             <Globe className="mx-auto h-12 w-12 text-gray-400" />
-            <h3 className="mt-2 text-sm font-medium text-gray-900">No sources</h3>
+            <h3 className="mt-2 text-sm font-medium text-gray-900">No sources found</h3>
             <p className="mt-1 text-sm text-gray-500">
               Get started by adding a new content source.
             </p>
@@ -284,61 +308,97 @@ const SourcesPage = () => {
             </div>
           </div>
         ) : (
-          <div className="divide-y divide-gray-200">
-            {sources.map((source) => (
-              <div key={source.id} className="p-6">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center">
-                      <h3 className="text-lg font-medium text-gray-900">
-                        {source.name}
-                      </h3>
-                      <span className={`ml-3 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                        source.is_active 
-                          ? 'bg-green-100 text-green-800' 
-                          : 'bg-red-100 text-red-800'
-                      }`}>
-                        {source.is_active ? 'Active' : 'Inactive'}
-                      </span>
+          <div className="p-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {sources.map((source) => (
+                <div key={source.pk || source.id} className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow relative">
+                  {/* Header with favicon and title */}
+                  <div className="flex items-start space-x-3 mb-3">
+                    <div className="flex-shrink-0">
+                      {getFaviconUrl(source.url) ? (
+                        <img
+                          src={getFaviconUrl(source.url)}
+                          alt=""
+                          className="h-6 w-6 rounded"
+                          onError={(e) => {
+                            e.target.style.display = 'none';
+                          }}
+                        />
+                      ) : (
+                        <Globe className="h-6 w-6 text-gray-400" />
+                      )}
                     </div>
-                    <p className="mt-1 text-sm text-gray-600">
+                    <div className="flex-1 min-w-0">
+                      <h3 className="text-sm font-medium text-gray-900 truncate">
+                        <a
+                          href={source.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="hover:text-primary-600"
+                        >
+                          {source.name}
+                        </a>
+                      </h3>
+                      <p className="text-xs text-gray-500 truncate">
+                        {getDomainFromUrl(source.url)}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Tags */}
+                  <div className="flex flex-wrap gap-2 mb-3">
+                    <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getTopicColor(source.topic?.name)}`}>
+                      {source.topic?.name}
+                    </span>
+                    <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getSourceTypeColor(source.source_type?.name)}`}>
+                      {source.source_type?.name}
+                    </span>
+                  </div>
+
+                  {/* Description */}
+                  {source.description && (
+                    <p className="text-sm text-gray-600 mb-3 line-clamp-2">
                       {source.description}
                     </p>
-                    <div className="mt-2 flex items-center text-sm text-gray-500">
-                      <Globe className="h-4 w-4 mr-1" />
+                  )}
+
+                  {/* Status and Actions */}
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center text-xs text-gray-500">
+                      {source.is_active ? (
+                        <>
+                          <CheckCircle className="h-3 w-3 mr-1 text-green-500" />
+                          <span>Active</span>
+                        </>
+                      ) : (
+                        <>
+                          <AlertCircle className="h-3 w-3 mr-1 text-red-500" />
+                          <span>Inactive</span>
+                        </>
+                      )}
+                    </div>
+                    <div className="flex items-center space-x-1">
+                      <button
+                        onClick={() => handleEdit(source)}
+                        className="p-1 text-gray-400 hover:text-primary-600 transition-colors"
+                        title="Edit source"
+                      >
+                        <Edit className="h-3 w-3" />
+                      </button>
                       <a
                         href={source.url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-primary-600 hover:text-primary-700 flex items-center"
+                        className="p-1 text-gray-400 hover:text-primary-600 transition-colors"
+                        title="Visit source"
                       >
-                        {source.url}
-                        <ExternalLink className="h-3 w-3 ml-1" />
+                        <ExternalLink className="h-3 w-3" />
                       </a>
                     </div>
-                    <div className="mt-2 text-xs text-gray-500">
-                      Type: {source.source_type?.name || 'Unknown'} • 
-                      Topic: {source.topic?.name || 'Unknown'} • 
-                      ID: {source.pk || source.id}
-                    </div>
-                  </div>
-                  <div className="ml-4 flex-shrink-0 flex space-x-2">
-                    <button
-                      onClick={() => handleEdit(source)}
-                      className="p-2 text-gray-400 hover:text-primary-600 transition-colors"
-                    >
-                      <Edit className="h-4 w-4" />
-                    </button>
-                    <button
-                      onClick={() => handleDelete(source)}
-                      className="p-2 text-gray-400 hover:text-red-600 transition-colors"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </button>
                   </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         )}
         

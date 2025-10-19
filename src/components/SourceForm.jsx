@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { createSource, updateSource, clearError } from '../store/sourceSlice.js';
+import { createSource, updateSource, deleteSource, clearError } from '../store/sourceSlice.js';
 import { topicService } from '../services/topicService.js';
 import { SOURCE_TYPE_CONSTANTS, SOURCE_TYPE_LABELS } from '../constants.js';
-import { X } from 'lucide-react';
+import { X, Trash2 } from 'lucide-react';
 
 const SourceForm = ({ source, onSuccess, onCancel }) => {
   const dispatch = useDispatch();
@@ -80,6 +80,19 @@ const SourceForm = ({ source, onSuccess, onCancel }) => {
       onSuccess();
     } catch (error) {
       console.error('Failed to save source:', error);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (window.confirm('Are you sure you want to deactivate this source?')) {
+      try {
+        const sourceId = source.pk || source.id;
+        console.log('Deleting source with ID:', sourceId);
+        await dispatch(deleteSource(sourceId)).unwrap();
+        onSuccess();
+      } catch (error) {
+        console.error('Failed to delete source:', error);
+      }
     }
   };
 
@@ -201,28 +214,43 @@ const SourceForm = ({ source, onSuccess, onCancel }) => {
 
       </div>
 
-      <div className="px-6 py-4 bg-gray-50 flex justify-end space-x-3">
-        <button
-          type="button"
-          onClick={onCancel}
-          className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
-        >
-          Cancel
-        </button>
-        <button
-          type="submit"
-          disabled={loading}
-          className="px-4 py-2 text-sm font-medium text-white bg-primary-600 border border-transparent rounded-md hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          {loading ? (
-            <div className="flex items-center">
-              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-              {source ? 'Updating...' : 'Creating...'}
-            </div>
-          ) : (
-            source ? 'Update Source' : 'Create Source'
+      <div className="px-6 py-4 bg-gray-50 flex justify-between">
+        <div>
+          {source && (
+            <button
+              type="button"
+              onClick={handleDelete}
+              disabled={loading}
+              className="inline-flex items-center px-4 py-2 text-sm font-medium text-red-700 bg-red-50 border border-red-200 rounded-md hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <Trash2 className="h-4 w-4 mr-2" />
+              Delete Source
+            </button>
           )}
-        </button>
+        </div>
+        <div className="flex space-x-3">
+          <button
+            type="button"
+            onClick={onCancel}
+            className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
+          >
+            Cancel
+          </button>
+          <button
+            type="submit"
+            disabled={loading}
+            className="px-4 py-2 text-sm font-medium text-white bg-primary-600 border border-transparent rounded-md hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {loading ? (
+              <div className="flex items-center">
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                {source ? 'Updating...' : 'Creating...'}
+              </div>
+            ) : (
+              source ? 'Update Source' : 'Create Source'
+            )}
+          </button>
+        </div>
       </div>
     </form>
   );
