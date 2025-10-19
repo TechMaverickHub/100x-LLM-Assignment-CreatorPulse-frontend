@@ -410,7 +410,7 @@ const SourcesPage = () => {
           <div className="px-6 py-4 border-t border-gray-200 bg-gray-50">
             <div className="flex items-center justify-between">
               <div className="text-sm text-gray-700">
-                Showing {((pagination.currentPage - 1) * 10) + 1} to {Math.min(pagination.currentPage * 10, pagination.count)} of {pagination.count} sources
+                Showing {sources.length > 0 ? ((pagination.currentPage - 1) * 8) + 1 : 0} to {sources.length > 0 ? ((pagination.currentPage - 1) * 8) + sources.length : 0} of {pagination.count} sources
               </div>
               <div className="flex space-x-2">
                 <button

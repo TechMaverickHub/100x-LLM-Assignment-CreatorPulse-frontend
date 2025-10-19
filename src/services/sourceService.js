@@ -9,6 +9,8 @@ export const sourceService = {
     // Add pagination params
     if (params.page) queryParams.append('page', params.page);
     if (params.pageSize) queryParams.append('page_size', params.pageSize);
+    // Set page size to 8 sources per page
+    queryParams.append('size', '8');
     
     // Add filter params
     if (params.name) queryParams.append('name', params.name);
