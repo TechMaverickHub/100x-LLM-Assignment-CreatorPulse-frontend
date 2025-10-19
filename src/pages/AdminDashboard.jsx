@@ -1,9 +1,10 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchSources } from '../store/sourceSlice.js';
 import { fetchUserTopics } from '../store/topicSlice.js';
 import { fetchNewsletterCount, fetchLatestNewsletter } from '../store/mailSlice.js';
+import { managementService } from '../services/managementService.js';
 import { Settings, Users, Globe, BarChart3, Mail, TrendingUp } from 'lucide-react';
 
 const AdminDashboard = () => {
@@ -12,6 +13,28 @@ const AdminDashboard = () => {
   const { sources, loading: sourcesLoading } = useSelector(state => state.sources);
   const { userTopics, loading: topicsLoading } = useSelector(state => state.topics);
   const { totalNewsletterCount, latestNewsletter } = useSelector(state => state.mail);
+  
+  // Management counts state
+  const [managementCounts, setManagementCounts] = useState({
+    total_source: 0,
+    active_source: 0,
+    total_users: 0,
+    total_newsletter_sent: 0
+  });
+  const [managementLoading, setManagementLoading] = useState(false);
+
+  // Fetch management counts
+  const fetchManagementCounts = async () => {
+    setManagementLoading(true);
+    try {
+      const response = await managementService.getManagementCounts();
+      setManagementCounts(response.results);
+    } catch (error) {
+      console.error('Failed to fetch management counts:', error);
+    } finally {
+      setManagementLoading(false);
+    }
+  };
 
   useEffect(() => {
     console.log('AdminDashboard - Fetching admin data');
@@ -19,12 +42,13 @@ const AdminDashboard = () => {
     dispatch(fetchUserTopics());
     dispatch(fetchNewsletterCount());
     dispatch(fetchLatestNewsletter());
+    fetchManagementCounts();
   }, [dispatch]);
 
   const adminStats = [
     {
       name: 'Total Sources',
-      value: sources.length,
+      value: managementLoading ? '...' : managementCounts.total_source,
       icon: Globe,
       color: 'text-blue-600',
       bgColor: 'bg-blue-100',
@@ -32,7 +56,7 @@ const AdminDashboard = () => {
     },
     {
       name: 'Active Sources',
-      value: sources.filter(source => source.is_active).length,
+      value: managementLoading ? '...' : managementCounts.active_source,
       icon: TrendingUp,
       color: 'text-green-600',
       bgColor: 'bg-green-100',
@@ -40,7 +64,7 @@ const AdminDashboard = () => {
     },
     {
       name: 'Total Users',
-      value: '1,234', // This would come from an API call in a real app
+      value: managementLoading ? '...' : managementCounts.total_users,
       icon: Users,
       color: 'text-purple-600',
       bgColor: 'bg-purple-100',
@@ -48,7 +72,7 @@ const AdminDashboard = () => {
     },
     {
       name: 'Newsletters Sent',
-      value: totalNewsletterCount || 0,
+      value: managementLoading ? '...' : managementCounts.total_newsletter_sent,
       icon: Mail,
       color: 'text-orange-600',
       bgColor: 'bg-orange-100',
