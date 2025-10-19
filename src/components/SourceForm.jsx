@@ -4,6 +4,7 @@ import { createSource, updateSource, deleteSource, clearError } from '../store/s
 import { topicService } from '../services/topicService.js';
 import { SOURCE_TYPE_CONSTANTS, SOURCE_TYPE_LABELS } from '../constants.js';
 import { X, Trash2 } from 'lucide-react';
+import ConfirmationModal from './ConfirmationModal.jsx';
 
 const SourceForm = ({ source, onSuccess, onCancel }) => {
   const dispatch = useDispatch();
@@ -20,6 +21,7 @@ const SourceForm = ({ source, onSuccess, onCancel }) => {
   
   const [topics, setTopics] = useState([]);
   const [topicsLoading, setTopicsLoading] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   useEffect(() => {
     if (source) {
@@ -83,17 +85,24 @@ const SourceForm = ({ source, onSuccess, onCancel }) => {
     }
   };
 
-  const handleDelete = async () => {
-    if (window.confirm('Are you sure you want to deactivate this source?')) {
-      try {
-        const sourceId = source.pk || source.id;
-        console.log('Deleting source with ID:', sourceId);
-        await dispatch(deleteSource(sourceId)).unwrap();
-        onSuccess();
-      } catch (error) {
-        console.error('Failed to delete source:', error);
-      }
+  const handleDeleteClick = () => {
+    setShowDeleteModal(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    try {
+      const sourceId = source.pk || source.id;
+      console.log('Deleting source with ID:', sourceId);
+      await dispatch(deleteSource(sourceId)).unwrap();
+      setShowDeleteModal(false);
+      onSuccess();
+    } catch (error) {
+      console.error('Failed to delete source:', error);
     }
+  };
+
+  const handleDeleteCancel = () => {
+    setShowDeleteModal(false);
   };
 
   return (
@@ -217,15 +226,15 @@ const SourceForm = ({ source, onSuccess, onCancel }) => {
       <div className="px-6 py-4 bg-gray-50 flex justify-between">
         <div>
           {source && (
-            <button
-              type="button"
-              onClick={handleDelete}
-              disabled={loading}
-              className="inline-flex items-center px-4 py-2 text-sm font-medium text-red-700 bg-red-50 border border-red-200 rounded-md hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <Trash2 className="h-4 w-4 mr-2" />
-              Delete Source
-            </button>
+             <button
+               type="button"
+               onClick={handleDeleteClick}
+               disabled={loading}
+               className="inline-flex items-center px-4 py-2 text-sm font-medium text-red-700 bg-red-50 border border-red-200 rounded-md hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed"
+             >
+               <Trash2 className="h-4 w-4 mr-2" />
+               Delete Source
+             </button>
           )}
         </div>
         <div className="flex space-x-3">
@@ -250,10 +259,22 @@ const SourceForm = ({ source, onSuccess, onCancel }) => {
               source ? 'Update Source' : 'Create Source'
             )}
           </button>
-        </div>
-      </div>
-    </form>
-  );
-};
+         </div>
+       </div>
 
-export default SourceForm;
+       {/* Confirmation Modal */}
+       <ConfirmationModal
+         isOpen={showDeleteModal}
+         onClose={handleDeleteCancel}
+         onConfirm={handleDeleteConfirm}
+         title="Delete Source"
+         message="Are you sure you want to delete this source? This action cannot be undone and will permanently remove the source from the system."
+         confirmText="Delete Source"
+         cancelText="Cancel"
+         type="danger"
+       />
+     </form>
+   );
+ };
+ 
+ export default SourceForm;
