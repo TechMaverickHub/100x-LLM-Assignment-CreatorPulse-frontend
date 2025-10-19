@@ -15,6 +15,7 @@ import NewsletterPage from './pages/NewsletterPage.jsx';
 import NewsletterListPage from './pages/NewsletterListPage.jsx';
 import SourceDashboard from './pages/SourceDashboard.jsx';
 import SourcesPage from './pages/admin/SourcesPage.jsx';
+import ManageUsers from './pages/admin/ManageUsers.jsx';
 
 function App() {
   const { isAuthenticated, loading } = useSelector(state => state.auth);
@@ -130,6 +131,17 @@ function App() {
             <ProtectedRoute requireAdmin={true}>
               <Layout>
                 <SourcesPage />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+        
+        <Route
+          path="/admin/users"
+          element={
+            <ProtectedRoute requireAdmin={true}>
+              <Layout>
+                <ManageUsers />
               </Layout>
             </ProtectedRoute>
           }

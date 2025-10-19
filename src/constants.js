@@ -41,6 +41,9 @@ export const API_ROUTES = {
   
   // Management Routes
   MANAGEMENT_COUNT: "management/count",
+  
+  // User Management Routes
+  USER_LIST_FILTER: "user/list-filter",
 };
 
 // Role Dictionary - Maps role IDs to role names
@@ -123,4 +126,5 @@ export const FULL_API_URLS = {
   SOURCE_LIST_FILTER: buildApiUrl(API_ROUTES.SOURCE_LIST_FILTER),
   USER_SOURCES: buildApiUrl(API_ROUTES.USER_SOURCES),
   MANAGEMENT_COUNT: buildApiUrl(API_ROUTES.MANAGEMENT_COUNT),
+  USER_LIST_FILTER: buildApiUrl(API_ROUTES.USER_LIST_FILTER),
 };

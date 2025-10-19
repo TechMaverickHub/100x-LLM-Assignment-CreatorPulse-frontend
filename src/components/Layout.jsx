@@ -12,7 +12,8 @@ import {
   Menu, 
   X,
   User,
-  Globe
+  Globe,
+  Users
 } from 'lucide-react';
 
 const Layout = ({ children }) => {
@@ -38,6 +39,7 @@ const Layout = ({ children }) => {
       return [
         { name: 'Admin Dashboard', href: '/admin/dashboard', icon: Home },
         { name: 'Manage Sources', href: '/admin/sources', icon: Settings },
+        { name: 'Manage Users', href: '/admin/users', icon: Users },
       ];
     } else {
       return [
