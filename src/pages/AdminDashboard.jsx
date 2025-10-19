@@ -19,9 +19,31 @@ const AdminDashboard = () => {
     total_source: 0,
     active_source: 0,
     total_users: 0,
-    total_newsletter_sent: 0
+    total_newsletter_sent: 0,
+    last_newsletter_sent: null,
+    new_user_registered: null
   });
   const [managementLoading, setManagementLoading] = useState(false);
+
+  // Helper function to calculate time difference in hours
+  const getTimeDifference = (dateString) => {
+    if (!dateString) return 'Unknown';
+    
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffInMs = now - date;
+    const diffInHours = Math.floor(diffInMs / (1000 * 60 * 60));
+    
+    if (diffInHours < 1) {
+      const diffInMinutes = Math.floor(diffInMs / (1000 * 60));
+      return diffInMinutes <= 1 ? 'Just now' : `${diffInMinutes} minutes ago`;
+    } else if (diffInHours < 24) {
+      return `${diffInHours} hour${diffInHours > 1 ? 's' : ''} ago`;
+    } else {
+      const diffInDays = Math.floor(diffInHours / 24);
+      return `${diffInDays} day${diffInDays > 1 ? 's' : ''} ago`;
+    }
+  };
 
   // Fetch management counts
   const fetchManagementCounts = async () => {
@@ -195,13 +217,17 @@ const AdminDashboard = () => {
             <div className="flex items-center justify-between">
               <span className="text-sm text-gray-600">Last Newsletter</span>
               <span className="text-sm text-gray-900">
-                {latestNewsletter ? new Date(latestNewsletter.created_at).toLocaleDateString() : 'None'}
+                {managementLoading ? '...' : (
+                  managementCounts.last_newsletter_sent 
+                    ? new Date(managementCounts.last_newsletter_sent).toLocaleString()
+                    : 'None'
+                )}
               </span>
             </div>
             <div className="flex items-center justify-between">
               <span className="text-sm text-gray-600">Active Sources</span>
               <span className="text-sm text-gray-900">
-                {sources.filter(source => source.is_active).length} / {sources.length}
+                {managementLoading ? '...' : `${managementCounts.active_source} / ${managementCounts.total_source}`}
               </span>
             </div>
           </div>
@@ -223,12 +249,24 @@ const AdminDashboard = () => {
           <div className="flex items-center text-sm">
             <div className="w-2 h-2 bg-blue-400 rounded-full mr-3"></div>
             <span className="text-gray-600">Latest newsletter generated</span>
-            <span className="ml-auto text-gray-400">2 hours ago</span>
+            <span className="ml-auto text-gray-400">
+              {managementLoading ? '...' : (
+                managementCounts.last_newsletter_sent && managementCounts.last_newsletter_sent.length > 0
+                  ? getTimeDifference(managementCounts.last_newsletter_sent[0])
+                  : 'Never'
+              )}
+            </span>
           </div>
           <div className="flex items-center text-sm">
             <div className="w-2 h-2 bg-purple-400 rounded-full mr-3"></div>
             <span className="text-gray-600">New user registered</span>
-            <span className="ml-auto text-gray-400">4 hours ago</span>
+            <span className="ml-auto text-gray-400">
+              {managementLoading ? '...' : (
+                managementCounts.new_user_registered && managementCounts.new_user_registered.length > 0
+                  ? getTimeDifference(managementCounts.new_user_registered[0])
+                  : 'Never'
+              )}
+            </span>
           </div>
         </div>
       </div>
