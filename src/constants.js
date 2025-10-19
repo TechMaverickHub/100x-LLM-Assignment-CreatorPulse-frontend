@@ -34,6 +34,7 @@ export const API_ROUTES = {
   SOURCE_DETAIL: "source/", // Will be used with ID parameter like source/11
   SOURCE_UPDATE: "source/", // Will be used with ID parameter  
   SOURCE_DELETE: "source/", // Will be used with ID parameter
+  SOURCE_ACTIVATE: "source/", // Will be used with ID parameter like source/12/activate
   
   // User Source Routes
   USER_SOURCES: "source/user-source-list-filter",

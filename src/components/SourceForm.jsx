@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { createSource, updateSource, deleteSource, clearError } from '../store/sourceSlice.js';
+import { createSource, updateSource, deleteSource, activateSource, deactivateSource, clearError } from '../store/sourceSlice.js';
 import { topicService } from '../services/topicService.js';
 import { SOURCE_TYPE_CONSTANTS, SOURCE_TYPE_LABELS } from '../constants.js';
-import { X, Trash2 } from 'lucide-react';
+import { X, Power } from 'lucide-react';
 import ConfirmationModal from './ConfirmationModal.jsx';
 
 const SourceForm = ({ source, onSuccess, onCancel }) => {
@@ -21,10 +21,12 @@ const SourceForm = ({ source, onSuccess, onCancel }) => {
   
   const [topics, setTopics] = useState([]);
   const [topicsLoading, setTopicsLoading] = useState(false);
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showActivateModal, setShowActivateModal] = useState(false);
 
   useEffect(() => {
     if (source) {
+      console.log('SourceForm - Source object:', source);
+      console.log('SourceForm - is_active value:', source.is_active);
       setFormData({
         name: source.name || '',
         description: source.description || '',
@@ -85,24 +87,33 @@ const SourceForm = ({ source, onSuccess, onCancel }) => {
     }
   };
 
-  const handleDeleteClick = () => {
-    setShowDeleteModal(true);
+  const handleActivateClick = () => {
+    setShowActivateModal(true);
   };
 
-  const handleDeleteConfirm = async () => {
+  const handleActivateConfirm = async () => {
     try {
       const sourceId = source.pk || source.id;
-      console.log('Deleting source with ID:', sourceId);
-      await dispatch(deleteSource(sourceId)).unwrap();
-      setShowDeleteModal(false);
+      const action = source.is_active ? 'deactivating' : 'activating';
+      console.log(`${action} source with ID:`, sourceId);
+      
+      if (source.is_active) {
+        // Deactivate source using DELETE method on /api/source/{id}
+        await dispatch(deactivateSource(sourceId)).unwrap();
+      } else {
+        // Activate source using PATCH method on /api/source/{id}/activate
+        await dispatch(activateSource(sourceId)).unwrap();
+      }
+      
+      setShowActivateModal(false);
       onSuccess();
     } catch (error) {
-      console.error('Failed to delete source:', error);
+      console.error('Failed to activate/deactivate source:', error);
     }
   };
 
-  const handleDeleteCancel = () => {
-    setShowDeleteModal(false);
+  const handleActivateCancel = () => {
+    setShowActivateModal(false);
   };
 
   return (
@@ -224,19 +235,23 @@ const SourceForm = ({ source, onSuccess, onCancel }) => {
       </div>
 
       <div className="px-6 py-4 bg-gray-50 flex justify-between">
-        <div>
-          {source && (
+         <div>
+           {source && (
              <button
                type="button"
-               onClick={handleDeleteClick}
+               onClick={handleActivateClick}
                disabled={loading}
-               className="inline-flex items-center px-4 py-2 text-sm font-medium text-red-700 bg-red-50 border border-red-200 rounded-md hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed"
+               className={`inline-flex items-center px-4 py-2 text-sm font-medium border rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed ${
+                 source.is_active 
+                   ? 'text-orange-700 bg-orange-50 border-orange-200 hover:bg-orange-100 focus:ring-orange-500'
+                   : 'text-green-700 bg-green-50 border-green-200 hover:bg-green-100 focus:ring-green-500'
+               }`}
              >
-               <Trash2 className="h-4 w-4 mr-2" />
-               Delete Source
+               <Power className="h-4 w-4 mr-2" />
+               {source.is_active ? 'Deactivate Source' : 'Activate Source'}
              </button>
-          )}
-        </div>
+           )}
+         </div>
         <div className="flex space-x-3">
           <button
             type="button"
@@ -264,14 +279,17 @@ const SourceForm = ({ source, onSuccess, onCancel }) => {
 
        {/* Confirmation Modal */}
        <ConfirmationModal
-         isOpen={showDeleteModal}
-         onClose={handleDeleteCancel}
-         onConfirm={handleDeleteConfirm}
-         title="Delete Source"
-         message="Are you sure you want to delete this source? This action cannot be undone and will permanently remove the source from the system."
-         confirmText="Delete Source"
+         isOpen={showActivateModal}
+         onClose={handleActivateCancel}
+         onConfirm={handleActivateConfirm}
+         title={source?.is_active ? "Deactivate Source" : "Activate Source"}
+         message={source?.is_active 
+           ? "Are you sure you want to deactivate this source? The source will be disabled and won't be included in newsletter generation."
+           : "Are you sure you want to activate this source? The source will be enabled and included in newsletter generation."
+         }
+         confirmText={source?.is_active ? "Deactivate Source" : "Activate Source"}
          cancelText="Cancel"
-         type="danger"
+         type={source?.is_active ? "warning" : "info"}
        />
      </form>
    );

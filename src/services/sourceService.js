@@ -52,6 +52,18 @@ export const sourceService = {
     return response.data;
   },
 
+  // Activate source (admin only)
+  activateSource: async (id) => {
+    const response = await api.patch(`${API_ROUTES.SOURCE_ACTIVATE}${id}/activate`);
+    return response.data;
+  },
+
+  // Deactivate source (admin only)
+  deactivateSource: async (id) => {
+    const response = await api.delete(`${API_ROUTES.SOURCE_DELETE}${id}`);
+    return response.data;
+  },
+
   // Get user sources with filtering and pagination
   getUserSources: async (params = {}) => {
     const queryParams = new URLSearchParams();

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchSources, setEditingSource, clearEditingSource, setFilters, clearFilters, setCurrentPage, getSourceById } from '../../store/sourceSlice.js';
+import { fetchSources, setEditingSource, clearEditingSource, setFilters, clearFilters, setCurrentPage } from '../../store/sourceSlice.js';
 import { topicService } from '../../services/topicService.js';
 import { SOURCE_TYPE_CONSTANTS, SOURCE_TYPE_LABELS, TOPIC_LABELS } from '../../constants.js';
 import { Plus, Edit, ExternalLink, Globe, Search, Filter, X, CheckCircle, AlertCircle } from 'lucide-react';
@@ -43,12 +43,15 @@ const SourcesPage = () => {
     }
     
     try {
-      await dispatch(getSourceById(sourceId)).unwrap();
+      // Use the source object from the list instead of fetching fresh data
+      // This preserves the is_active field which is not returned by the individual source API
+      dispatch(setEditingSource(source));
       setShowForm(true);
     } catch (error) {
-      console.error('Failed to fetch source details:', error);
+      console.error('Failed to set editing source:', error);
     }
   };
+
 
   const handleCloseForm = () => {
     setShowForm(false);

@@ -62,6 +62,30 @@ export const deleteSource = createAsyncThunk(
   }
 );
 
+export const activateSource = createAsyncThunk(
+  'sources/activateSource',
+  async (id, { rejectWithValue }) => {
+    try {
+      const response = await sourceService.activateSource(id);
+      return { id, response };
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to activate source');
+    }
+  }
+);
+
+export const deactivateSource = createAsyncThunk(
+  'sources/deactivateSource',
+  async (id, { rejectWithValue }) => {
+    try {
+      const response = await sourceService.deactivateSource(id);
+      return { id, response };
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to deactivate source');
+    }
+  }
+);
+
 const initialState = {
   sources: [],
   pagination: {
@@ -189,6 +213,34 @@ const sourceSlice = createSlice({
         state.error = null;
       })
       .addCase(deleteSource.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      // Activate source
+      .addCase(activateSource.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(activateSource.fulfilled, (state, action) => {
+        state.loading = false;
+        // Refresh the sources list instead of updating individual source
+        state.error = null;
+      })
+      .addCase(activateSource.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      // Deactivate source
+      .addCase(deactivateSource.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(deactivateSource.fulfilled, (state, action) => {
+        state.loading = false;
+        // Refresh the sources list instead of updating individual source
+        state.error = null;
+      })
+      .addCase(deactivateSource.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       });
