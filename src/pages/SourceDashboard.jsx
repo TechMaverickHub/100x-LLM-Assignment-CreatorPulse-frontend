@@ -22,7 +22,7 @@ const SourceDashboard = () => {
     sourceType: '',
     topic: '',
     page: 1,
-    pageSize: 15
+    pageSize: 8
   });
 
   const [showFilters, setShowFilters] = useState(false);
@@ -42,7 +42,7 @@ const SourceDashboard = () => {
         next: response.next,
         previous: response.previous,
         currentPage: filters.page,
-        totalPages: Math.ceil((response.count || 0) / filters.pageSize)
+        totalPages: Math.ceil((response.count || 0) / 8) // Use 8 as page size since API uses size=8
       });
     } catch (err) {
       setError('Failed to fetch sources. Please try again.');
@@ -74,7 +74,7 @@ const SourceDashboard = () => {
       sourceType: '',
       topic: '',
       page: 1,
-      pageSize: 10
+      pageSize: 8
     });
   };
 
@@ -320,11 +320,11 @@ const SourceDashboard = () => {
         )}
 
         {/* Pagination */}
-        {pagination.totalPages > 1 && (
+        {!loading && sources.length > 0 && (pagination.next || pagination.previous) && (
           <div className="px-6 py-4 border-t border-gray-200">
             <div className="flex items-center justify-between">
               <div className="text-sm text-gray-700">
-                Showing {((pagination.currentPage - 1) * filters.pageSize) + 1} to {Math.min(pagination.currentPage * filters.pageSize, pagination.count)} of {pagination.count} sources
+                Showing {sources.length > 0 ? ((pagination.currentPage - 1) * 8) + 1 : 0} to {sources.length > 0 ? ((pagination.currentPage - 1) * 8) + sources.length : 0} of {pagination.count} sources
               </div>
               <div className="flex items-center space-x-2">
                 <button
