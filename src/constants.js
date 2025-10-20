@@ -51,6 +51,14 @@ export const API_ROUTES = {
   ANALYTICS_DAILY_REGISTRATIONS: "analytics/users/daily-registrations/",
   ANALYTICS_ACTIVE_USERS: "analytics/users/active/",
   ANALYTICS_USERS_PER_TOPIC: "analytics/users/topics/",
+  
+  // Email/Newsletter Analytics Routes
+  ANALYTICS_EMAILS_DAILY_COUNT: "analytics/emails/daily-count/",
+  ANALYTICS_EMAILS_STATUS_BREAKDOWN: "analytics/emails/status-breakdown/",
+  
+  // Topic & Source Analytics Routes
+  ANALYTICS_SOURCES_BY_TOPIC: "analytics/sources/by-topic/",
+  ANALYTICS_TOPICS_TOP: "analytics/topics/top/",
 };
 
 // Role Dictionary - Maps role IDs to role names
@@ -139,4 +147,8 @@ export const FULL_API_URLS = {
   ANALYTICS_DAILY_REGISTRATIONS: buildApiUrl(API_ROUTES.ANALYTICS_DAILY_REGISTRATIONS),
   ANALYTICS_ACTIVE_USERS: buildApiUrl(API_ROUTES.ANALYTICS_ACTIVE_USERS),
   ANALYTICS_USERS_PER_TOPIC: buildApiUrl(API_ROUTES.ANALYTICS_USERS_PER_TOPIC),
+  ANALYTICS_EMAILS_DAILY_COUNT: buildApiUrl(API_ROUTES.ANALYTICS_EMAILS_DAILY_COUNT),
+  ANALYTICS_EMAILS_STATUS_BREAKDOWN: buildApiUrl(API_ROUTES.ANALYTICS_EMAILS_STATUS_BREAKDOWN),
+  ANALYTICS_SOURCES_BY_TOPIC: buildApiUrl(API_ROUTES.ANALYTICS_SOURCES_BY_TOPIC),
+  ANALYTICS_TOPICS_TOP: buildApiUrl(API_ROUTES.ANALYTICS_TOPICS_TOP),
 };

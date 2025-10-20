@@ -10,7 +10,10 @@ import {
   CartesianGrid, 
   Tooltip, 
   ResponsiveContainer,
-  Legend
+  Legend,
+  PieChart,
+  Pie,
+  Cell
 } from 'recharts';
 import { 
   Users, 
@@ -19,19 +22,32 @@ import {
   TrendingUp, 
   Calendar,
   BarChart3,
-  RefreshCw
+  RefreshCw,
+  Mail,
+  CheckCircle,
+  XCircle,
+  Globe,
+  BookOpen
 } from 'lucide-react';
 
 const AnalyticsPage = () => {
   const [analyticsData, setAnalyticsData] = useState({
     dailyRegistrations: { date: [], count: [] },
     activeUsers: { date: [], count: [] },
-    usersPerTopic: { topic: [], count: [] }
+    usersPerTopic: { topic: [], count: [] },
+    dailyEmailCount: { date: [], count: [] },
+    emailStatusBreakdown: { success: 0, failure: 0 },
+    sourcesByTopic: { topic: [], count: [] },
+    topTopics: { topic: [], count: [] }
   });
   const [loading, setLoading] = useState({
     dailyRegistrations: false,
     activeUsers: false,
-    usersPerTopic: false
+    usersPerTopic: false,
+    dailyEmailCount: false,
+    emailStatusBreakdown: false,
+    sourcesByTopic: false,
+    topTopics: false
   });
   const [error, setError] = useState(null);
 
@@ -43,7 +59,11 @@ const AnalyticsPage = () => {
     await Promise.all([
       fetchDailyRegistrations(),
       fetchActiveUsers(),
-      fetchUsersPerTopic()
+      fetchUsersPerTopic(),
+      fetchDailyEmailCount(),
+      fetchEmailStatusBreakdown(),
+      fetchSourcesByTopic(),
+      fetchTopTopics()
     ]);
   };
 
@@ -95,6 +115,70 @@ const AnalyticsPage = () => {
     }
   };
 
+  const fetchDailyEmailCount = async () => {
+    setLoading(prev => ({ ...prev, dailyEmailCount: true }));
+    try {
+      const response = await analyticsService.getDailyEmailCount();
+      setAnalyticsData(prev => ({
+        ...prev,
+        dailyEmailCount: response.results
+      }));
+    } catch (err) {
+      console.error('Error fetching daily email count:', err);
+      setError('Failed to fetch daily email count data');
+    } finally {
+      setLoading(prev => ({ ...prev, dailyEmailCount: false }));
+    }
+  };
+
+  const fetchEmailStatusBreakdown = async () => {
+    setLoading(prev => ({ ...prev, emailStatusBreakdown: true }));
+    try {
+      const response = await analyticsService.getEmailStatusBreakdown();
+      setAnalyticsData(prev => ({
+        ...prev,
+        emailStatusBreakdown: response.results
+      }));
+    } catch (err) {
+      console.error('Error fetching email status breakdown:', err);
+      setError('Failed to fetch email status breakdown data');
+    } finally {
+      setLoading(prev => ({ ...prev, emailStatusBreakdown: false }));
+    }
+  };
+
+  const fetchSourcesByTopic = async () => {
+    setLoading(prev => ({ ...prev, sourcesByTopic: true }));
+    try {
+      const response = await analyticsService.getSourcesByTopic();
+      setAnalyticsData(prev => ({
+        ...prev,
+        sourcesByTopic: response.results
+      }));
+    } catch (err) {
+      console.error('Error fetching sources by topic:', err);
+      setError('Failed to fetch sources by topic data');
+    } finally {
+      setLoading(prev => ({ ...prev, sourcesByTopic: false }));
+    }
+  };
+
+  const fetchTopTopics = async () => {
+    setLoading(prev => ({ ...prev, topTopics: true }));
+    try {
+      const response = await analyticsService.getTopTopics();
+      setAnalyticsData(prev => ({
+        ...prev,
+        topTopics: response.results
+      }));
+    } catch (err) {
+      console.error('Error fetching top topics:', err);
+      setError('Failed to fetch top topics data');
+    } finally {
+      setLoading(prev => ({ ...prev, topTopics: false }));
+    }
+  };
+
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString('en-US', { 
       month: 'short', 
@@ -118,6 +202,29 @@ const AnalyticsPage = () => {
   const usersPerTopicData = analyticsData.usersPerTopic.topic?.map((topic, index) => ({
     topic,
     count: analyticsData.usersPerTopic.count[index] || 0
+  })) || [];
+
+  // Email/Newsletter Analytics Data
+  const dailyEmailCountData = analyticsData.dailyEmailCount.date?.map((date, index) => ({
+    date: formatDate(date),
+    fullDate: date,
+    count: analyticsData.dailyEmailCount.count[index] || 0
+  })) || [];
+
+  const emailStatusData = [
+    { name: 'Success', value: analyticsData.emailStatusBreakdown.success || 0, color: '#10B981' },
+    { name: 'Failure', value: analyticsData.emailStatusBreakdown.failure || 0, color: '#EF4444' }
+  ];
+
+  // Topic & Source Analytics Data
+  const sourcesByTopicData = analyticsData.sourcesByTopic.topic?.map((topic, index) => ({
+    topic,
+    count: analyticsData.sourcesByTopic.count[index] || 0
+  })) || [];
+
+  const topTopicsData = analyticsData.topTopics.topic?.map((topic, index) => ({
+    topic,
+    count: analyticsData.topTopics.count[index] || 0
   })) || [];
 
   const refreshData = () => {
@@ -160,7 +267,7 @@ const AnalyticsPage = () => {
         )}
 
         {/* Analytics Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           {/* Daily Registrations Card */}
           <div className="bg-white rounded-xl shadow-sm border border-primary-200 p-6">
             <div className="flex items-center justify-between">
@@ -193,18 +300,34 @@ const AnalyticsPage = () => {
             </div>
           </div>
 
-          {/* Total Topics Card */}
+          {/* Emails Sent Card */}
           <div className="bg-white rounded-xl shadow-sm border border-primary-200 p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Topics with Users</p>
+                <p className="text-sm font-medium text-gray-600">Emails Sent</p>
                 <p className="text-2xl font-bold text-gray-900">
-                  {usersPerTopicData.length}
+                  {dailyEmailCountData.reduce((sum, item) => sum + item.count, 0)}
                 </p>
-                <p className="text-xs text-gray-500">Active topics</p>
+                <p className="text-xs text-gray-500">Last 7 days</p>
+              </div>
+              <div className="h-12 w-12 bg-orange-100 rounded-lg flex items-center justify-center">
+                <Mail className="h-6 w-6 text-orange-600" />
+              </div>
+            </div>
+          </div>
+
+          {/* Total Sources Card */}
+          <div className="bg-white rounded-xl shadow-sm border border-primary-200 p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Total Sources</p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {sourcesByTopicData.reduce((sum, item) => sum + item.count, 0)}
+                </p>
+                <p className="text-xs text-gray-500">Across all topics</p>
               </div>
               <div className="h-12 w-12 bg-purple-100 rounded-lg flex items-center justify-center">
-                <BarChart3 className="h-6 w-6 text-purple-600" />
+                <Globe className="h-6 w-6 text-purple-600" />
               </div>
             </div>
           </div>
@@ -316,6 +439,154 @@ const AnalyticsPage = () => {
                 </BarChart>
               </ResponsiveContainer>
             )}
+          </div>
+        </div>
+
+        {/* Email/Newsletter Analytics Section */}
+        <div className="mt-8">
+          <div className="mb-6">
+            <h2 className="text-2xl font-bold text-gray-900">Email/Newsletter Analytics</h2>
+            <p className="mt-1 text-gray-600">Email delivery and newsletter performance metrics</p>
+          </div>
+          
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Daily Emails Sent Chart */}
+            <div className="bg-white rounded-xl shadow-sm border border-primary-200 p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-gray-900">Newsletters Sent Per Day</h3>
+                <Mail className="h-5 w-5 text-gray-400" />
+              </div>
+              {loading.dailyEmailCount ? (
+                <div className="flex items-center justify-center h-64">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
+                  <span className="ml-3 text-gray-600">Loading...</span>
+                </div>
+              ) : (
+                <ResponsiveContainer width="100%" height={300}>
+                  <LineChart data={dailyEmailCountData}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="date" />
+                    <YAxis />
+                    <Tooltip 
+                      labelFormatter={(label, payload) => {
+                        if (payload && payload[0]) {
+                          return `Date: ${payload[0].payload.fullDate}`;
+                        }
+                        return label;
+                      }}
+                    />
+                    <Line 
+                      type="monotone" 
+                      dataKey="count" 
+                      stroke="#F97316" 
+                      strokeWidth={3}
+                      dot={{ fill: '#F97316', strokeWidth: 2, r: 4 }}
+                      activeDot={{ r: 6, stroke: '#F97316', strokeWidth: 2 }}
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              )}
+            </div>
+
+            {/* Email Status Breakdown Chart */}
+            <div className="bg-white rounded-xl shadow-sm border border-primary-200 p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-gray-900">Success vs Failure</h3>
+                <CheckCircle className="h-5 w-5 text-gray-400" />
+              </div>
+              {loading.emailStatusBreakdown ? (
+                <div className="flex items-center justify-center h-64">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
+                  <span className="ml-3 text-gray-600">Loading...</span>
+                </div>
+              ) : (
+                <ResponsiveContainer width="100%" height={300}>
+                  <PieChart>
+                    <Pie
+                      data={emailStatusData}
+                      cx="50%"
+                      cy="50%"
+                      labelLine={false}
+                      label={({ name, value, percent }) => `${name}: ${value} (${(percent * 100).toFixed(0)}%)`}
+                      outerRadius={80}
+                      fill="#8884d8"
+                      dataKey="value"
+                    >
+                      {emailStatusData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <Tooltip />
+                  </PieChart>
+                </ResponsiveContainer>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Topic & Source Analytics Section */}
+        <div className="mt-8">
+          <div className="mb-6">
+            <h2 className="text-2xl font-bold text-gray-900">Topic & Source Analytics</h2>
+            <p className="mt-1 text-gray-600">Content sources and topic distribution insights</p>
+          </div>
+          
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Sources by Topic Chart */}
+            <div className="bg-white rounded-xl shadow-sm border border-primary-200 p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-gray-900">Sources Added Per Topic</h3>
+                <Globe className="h-5 w-5 text-gray-400" />
+              </div>
+              {loading.sourcesByTopic ? (
+                <div className="flex items-center justify-center h-64">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
+                  <span className="ml-3 text-gray-600">Loading...</span>
+                </div>
+              ) : (
+                <ResponsiveContainer width="100%" height={300}>
+                  <BarChart data={sourcesByTopicData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="topic" />
+                    <YAxis />
+                    <Tooltip />
+                    <Bar 
+                      dataKey="count" 
+                      fill="#06B6D4"
+                      radius={[4, 4, 0, 0]}
+                    />
+                  </BarChart>
+                </ResponsiveContainer>
+              )}
+            </div>
+
+            {/* Top Topics by User Subscriptions Chart */}
+            <div className="bg-white rounded-xl shadow-sm border border-primary-200 p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-gray-900">Top Topics by User Subscriptions</h3>
+                <BookOpen className="h-5 w-5 text-gray-400" />
+              </div>
+              {loading.topTopics ? (
+                <div className="flex items-center justify-center h-64">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
+                  <span className="ml-3 text-gray-600">Loading...</span>
+                </div>
+              ) : (
+                <ResponsiveContainer width="100%" height={300}>
+                  <BarChart data={topTopicsData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="topic" />
+                    <YAxis />
+                    <Tooltip />
+                    <Bar 
+                      dataKey="count" 
+                      fill="#EC4899"
+                      radius={[4, 4, 0, 0]}
+                    />
+                  </BarChart>
+                </ResponsiveContainer>
+              )}
+            </div>
           </div>
         </div>
       </div>
