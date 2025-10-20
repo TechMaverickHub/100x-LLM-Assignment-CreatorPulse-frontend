@@ -16,11 +16,28 @@ export const userManagementService = {
     if (params.email) queryParams.append('email', params.email);
     if (params.firstName) queryParams.append('first_name', params.firstName);
     if (params.lastName) queryParams.append('last_name', params.lastName);
+    if (params.isActive !== undefined && params.isActive !== '') {
+      // Convert to capitalized boolean string for API
+      const boolValue = params.isActive === 'true' ? 'True' : 'False';
+      queryParams.append('is_active', boolValue);
+    }
     
     const queryString = queryParams.toString();
     const url = queryString ? `${API_ROUTES.USER_LIST_FILTER}?${queryString}` : API_ROUTES.USER_LIST_FILTER;
     
     const response = await api.get(url);
+    return response.data;
+  },
+
+  // Activate user (admin only)
+  activateUser: async (userId) => {
+    const response = await api.post(`${API_ROUTES.USER_ACTIVATE}${userId}/activate`);
+    return response.data;
+  },
+
+  // Deactivate user (admin only)
+  deactivateUser: async (userId) => {
+    const response = await api.delete(`${API_ROUTES.USER_DETAIL}${userId}`);
     return response.data;
   }
 };

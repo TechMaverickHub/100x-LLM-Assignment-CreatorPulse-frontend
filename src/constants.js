@@ -44,6 +44,8 @@ export const API_ROUTES = {
   
   // User Management Routes
   USER_LIST_FILTER: "user/list-filter",
+  USER_DETAIL: "user/", // Will be used with ID parameter like user/7
+  USER_ACTIVATE: "user/", // Will be used with ID parameter like user/7/activate
 };
 
 // Role Dictionary - Maps role IDs to role names
@@ -127,4 +129,6 @@ export const FULL_API_URLS = {
   USER_SOURCES: buildApiUrl(API_ROUTES.USER_SOURCES),
   MANAGEMENT_COUNT: buildApiUrl(API_ROUTES.MANAGEMENT_COUNT),
   USER_LIST_FILTER: buildApiUrl(API_ROUTES.USER_LIST_FILTER),
+  USER_DETAIL: buildApiUrl(API_ROUTES.USER_DETAIL),
+  USER_ACTIVATE: buildApiUrl(API_ROUTES.USER_ACTIVATE),
 };

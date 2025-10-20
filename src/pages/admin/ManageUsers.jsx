@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { userManagementService } from '../../services/userManagementService.js';
-import { Search, Filter, X, Users, Mail, Calendar, Clock } from 'lucide-react';
+import ConfirmationModal from '../../components/ConfirmationModal.jsx';
+import { Search, Filter, X, Users, Mail, Calendar, Clock, UserCheck, UserX } from 'lucide-react';
 
 const ManageUsers = () => {
   const [users, setUsers] = useState([]);
@@ -19,12 +20,22 @@ const ManageUsers = () => {
     email: '',
     firstName: '',
     lastName: '',
+    isActive: '',
     page: 1,
     pageSize: 8
   });
 
   const [showFilters, setShowFilters] = useState(false);
   const [localFilters, setLocalFilters] = useState(filters);
+  const [confirmationModal, setConfirmationModal] = useState({
+    isOpen: false,
+    title: '',
+    message: '',
+    confirmText: '',
+    type: 'warning',
+    onConfirm: null
+  });
+  const [actionLoading, setActionLoading] = useState(false);
 
   useEffect(() => {
     fetchUsers();
@@ -70,6 +81,7 @@ const ManageUsers = () => {
       email: '',
       firstName: '',
       lastName: '',
+      isActive: '',
       page: 1,
       pageSize: 8
     };
@@ -90,6 +102,62 @@ const ManageUsers = () => {
 
   const formatTime = (timeString) => {
     return timeString || 'Not set';
+  };
+
+  const handleActivateUser = (user) => {
+    setConfirmationModal({
+      isOpen: true,
+      title: 'Activate User',
+      message: `Are you sure you want to activate ${user.first_name} ${user.last_name}? They will be able to access the system again.`,
+      confirmText: 'Activate',
+      type: 'info',
+      onConfirm: () => confirmActivateUser(user.pk)
+    });
+  };
+
+  const handleDeactivateUser = (user) => {
+    setConfirmationModal({
+      isOpen: true,
+      title: 'Deactivate User',
+      message: `Are you sure you want to deactivate ${user.first_name} ${user.last_name}? They will lose access to the system.`,
+      confirmText: 'Deactivate',
+      type: 'danger',
+      onConfirm: () => confirmDeactivateUser(user.pk)
+    });
+  };
+
+  const confirmActivateUser = async (userId) => {
+    setActionLoading(true);
+    try {
+      await userManagementService.activateUser(userId);
+      // Refresh the user list
+      await fetchUsers();
+      setConfirmationModal({ ...confirmationModal, isOpen: false });
+    } catch (err) {
+      setError('Failed to activate user. Please try again.');
+      console.error('Error activating user:', err);
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const confirmDeactivateUser = async (userId) => {
+    setActionLoading(true);
+    try {
+      await userManagementService.deactivateUser(userId);
+      // Refresh the user list
+      await fetchUsers();
+      setConfirmationModal({ ...confirmationModal, isOpen: false });
+    } catch (err) {
+      setError('Failed to deactivate user. Please try again.');
+      console.error('Error deactivating user:', err);
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const closeConfirmationModal = () => {
+    setConfirmationModal({ ...confirmationModal, isOpen: false });
   };
 
   return (
@@ -119,7 +187,7 @@ const ManageUsers = () => {
         {/* Filters */}
         {showFilters && (
           <div className="bg-white rounded-xl shadow-sm border border-primary-200 p-6 mb-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Search by Email
@@ -157,6 +225,21 @@ const ManageUsers = () => {
                   placeholder="Enter last name..."
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
                 />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  User Status
+                </label>
+                <select
+                  value={localFilters.isActive}
+                  onChange={(e) => handleFilterChange('isActive', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
+                >
+                  <option value="">All Users</option>
+                  <option value="true">Active Users</option>
+                  <option value="false">Inactive Users</option>
+                </select>
               </div>
             </div>
             
@@ -204,7 +287,9 @@ const ManageUsers = () => {
               <Users className="mx-auto h-12 w-12 text-gray-400" />
               <h3 className="mt-2 text-sm font-medium text-gray-900">No users found</h3>
               <p className="mt-1 text-sm text-gray-500">
-                {Object.values(localFilters).some(filter => filter && filter !== '' && filter !== 1 && filter !== 8)
+                {Object.entries(localFilters).some(([key, filter]) => 
+                  key !== 'page' && key !== 'pageSize' && filter && filter !== ''
+                )
                   ? 'Try adjusting your filters to see more results.'
                   : 'No users have been registered yet.'}
               </p>
@@ -249,10 +334,41 @@ const ManageUsers = () => {
                         </div>
                       </div>
                     </div>
-                    <div className="flex items-center space-x-2">
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                        Active
-                      </span>
+                    <div className="flex items-center space-x-3">
+                      {/* Enhanced Status Badge */}
+                      <div className="flex items-center space-x-2">
+                        <div className={`w-2 h-2 rounded-full ${
+                          user.is_active ? 'bg-green-500' : 'bg-red-500'
+                        }`}></div>
+                        <span className={`inline-flex items-center px-3 py-1.5 rounded-lg text-sm font-semibold shadow-sm ${
+                          user.is_active 
+                            ? 'bg-green-50 text-green-700 border border-green-200' 
+                            : 'bg-red-50 text-red-700 border border-red-200'
+                        }`}>
+                          {user.is_active ? '✓ Active' : '✗ Inactive'}
+                        </span>
+                      </div>
+                      
+                      {/* Enhanced Action Button */}
+                      {user.is_active ? (
+                        <button
+                          onClick={() => handleDeactivateUser(user)}
+                          disabled={actionLoading}
+                          className="inline-flex items-center px-4 py-2 border border-red-300 text-sm font-medium rounded-lg text-red-700 bg-white hover:bg-red-50 hover:border-red-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-sm hover:shadow-md"
+                        >
+                          <UserX className="h-4 w-4 mr-2" />
+                          Deactivate User
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => handleActivateUser(user)}
+                          disabled={actionLoading}
+                          className="inline-flex items-center px-4 py-2 border border-green-300 text-sm font-medium rounded-lg text-green-700 bg-white hover:bg-green-50 hover:border-green-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-sm hover:shadow-md"
+                        >
+                          <UserCheck className="h-4 w-4 mr-2" />
+                          Activate User
+                        </button>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -290,6 +406,17 @@ const ManageUsers = () => {
             </div>
           </div>
         )}
+
+        {/* Confirmation Modal */}
+        <ConfirmationModal
+          isOpen={confirmationModal.isOpen}
+          onClose={closeConfirmationModal}
+          onConfirm={confirmationModal.onConfirm}
+          title={confirmationModal.title}
+          message={confirmationModal.message}
+          confirmText={confirmationModal.confirmText}
+          type={confirmationModal.type}
+        />
       </div>
     </div>
   );
