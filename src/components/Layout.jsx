@@ -13,7 +13,8 @@ import {
   X,
   User,
   Globe,
-  Users
+  Users,
+  BarChart3
 } from 'lucide-react';
 
 const Layout = ({ children }) => {
@@ -38,6 +39,7 @@ const Layout = ({ children }) => {
     if (isAdmin(roleId)) {
       return [
         { name: 'Admin Dashboard', href: '/admin/dashboard', icon: Home },
+        { name: 'Analytics', href: '/admin/analytics', icon: BarChart3 },
         { name: 'Manage Sources', href: '/admin/sources', icon: Settings },
         { name: 'Manage Users', href: '/admin/users', icon: Users },
       ];

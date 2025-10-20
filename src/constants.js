@@ -46,6 +46,11 @@ export const API_ROUTES = {
   USER_LIST_FILTER: "user/list-filter",
   USER_DETAIL: "user/", // Will be used with ID parameter like user/7
   USER_ACTIVATE: "user/", // Will be used with ID parameter like user/7/activate
+  
+  // Analytics Routes
+  ANALYTICS_DAILY_REGISTRATIONS: "analytics/users/daily-registrations/",
+  ANALYTICS_ACTIVE_USERS: "analytics/users/active/",
+  ANALYTICS_USERS_PER_TOPIC: "analytics/users/topics/",
 };
 
 // Role Dictionary - Maps role IDs to role names
@@ -131,4 +136,7 @@ export const FULL_API_URLS = {
   USER_LIST_FILTER: buildApiUrl(API_ROUTES.USER_LIST_FILTER),
   USER_DETAIL: buildApiUrl(API_ROUTES.USER_DETAIL),
   USER_ACTIVATE: buildApiUrl(API_ROUTES.USER_ACTIVATE),
+  ANALYTICS_DAILY_REGISTRATIONS: buildApiUrl(API_ROUTES.ANALYTICS_DAILY_REGISTRATIONS),
+  ANALYTICS_ACTIVE_USERS: buildApiUrl(API_ROUTES.ANALYTICS_ACTIVE_USERS),
+  ANALYTICS_USERS_PER_TOPIC: buildApiUrl(API_ROUTES.ANALYTICS_USERS_PER_TOPIC),
 };
