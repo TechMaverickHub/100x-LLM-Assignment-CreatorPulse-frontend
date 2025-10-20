@@ -39,8 +39,6 @@ export const API_ROUTES = {
   // User Source Routes
   USER_SOURCES: "source/user-source-list-filter",
   
-  // Management Routes
-  MANAGEMENT_COUNT: "management/count",
   
   // User Management Routes
   USER_LIST_FILTER: "user/list-filter",
@@ -51,6 +49,7 @@ export const API_ROUTES = {
   ANALYTICS_DAILY_REGISTRATIONS: "analytics/users/daily-registrations/",
   ANALYTICS_ACTIVE_USERS: "analytics/users/active/",
   ANALYTICS_USERS_PER_TOPIC: "analytics/users/topics/",
+  ANALYTICS_MANAGEMENT_COUNT: "analytics/count",
   
   // Email/Newsletter Analytics Routes
   ANALYTICS_EMAILS_DAILY_COUNT: "analytics/emails/daily-count/",
@@ -140,7 +139,7 @@ export const FULL_API_URLS = {
   SOURCE_CREATE: buildApiUrl(API_ROUTES.SOURCE_CREATE),
   SOURCE_LIST_FILTER: buildApiUrl(API_ROUTES.SOURCE_LIST_FILTER),
   USER_SOURCES: buildApiUrl(API_ROUTES.USER_SOURCES),
-  MANAGEMENT_COUNT: buildApiUrl(API_ROUTES.MANAGEMENT_COUNT),
+  MANAGEMENT_COUNT: buildApiUrl(API_ROUTES.ANALYTICS_MANAGEMENT_COUNT),
   USER_LIST_FILTER: buildApiUrl(API_ROUTES.USER_LIST_FILTER),
   USER_DETAIL: buildApiUrl(API_ROUTES.USER_DETAIL),
   USER_ACTIVATE: buildApiUrl(API_ROUTES.USER_ACTIVATE),
