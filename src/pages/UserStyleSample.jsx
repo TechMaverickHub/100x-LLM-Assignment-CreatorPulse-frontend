@@ -227,9 +227,6 @@ const UserStyleSample = () => {
                     <p className="text-sm text-gray-900 leading-relaxed">
                       {truncateText(sample.text)}
                     </p>
-                    <p className="text-xs text-gray-500 mt-2">
-                      Sample ID: {sample.pk}
-                    </p>
                   </div>
                   <div className="flex items-center gap-2 ml-4">
                     <button
@@ -429,9 +426,6 @@ const UserStyleSample = () => {
               </div>
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Sample ID: {currentSample.pk}
-                  </label>
                   <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
                     <p className="text-sm text-gray-900 whitespace-pre-wrap leading-relaxed">
                       {currentSample.text}
