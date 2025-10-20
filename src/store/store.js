@@ -3,6 +3,7 @@ import authReducer from './authSlice.js';
 import topicReducer from './topicSlice.js';
 import sourceReducer from './sourceSlice.js';
 import mailReducer from './mailSlice.js';
+import userStyleSampleReducer from './userStyleSampleSlice.js';
 
 export const store = configureStore({
   reducer: {
@@ -10,6 +11,7 @@ export const store = configureStore({
     topics: topicReducer,
     sources: sourceReducer,
     mail: mailReducer,
+    userStyleSamples: userStyleSampleReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

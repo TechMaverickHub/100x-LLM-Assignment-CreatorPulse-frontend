@@ -5,7 +5,7 @@ import { fetchUserTopics } from '../store/topicSlice.js';
 import { fetchNewsletterCount, fetchLatestNewsletter } from '../store/mailSlice.js';
 import { isAdmin } from '../constants.js';
 import HTMLViewer from '../components/HTMLViewer.jsx';
-import { BookOpen, Newspaper, TrendingUp, Users } from 'lucide-react';
+import { BookOpen, Newspaper, TrendingUp, Users, FileText } from 'lucide-react';
 
 const Dashboard = () => {
   const dispatch = useDispatch();
@@ -165,6 +165,36 @@ const Dashboard = () => {
              )}
            </div>
          </div>
+      </div>
+
+      {/* User Style Sample Section */}
+      <div className="bg-white rounded-xl shadow-sm border border-primary-200 p-6">
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-purple-100 rounded-lg">
+              <FileText className="h-5 w-5 text-purple-600" />
+            </div>
+            <h2 className="text-base font-semibold text-gray-900">User Style Sample</h2>
+          </div>
+          <Link
+            to="/user-style-sample"
+            className="text-xs font-medium text-primary-600 hover:text-primary-500 px-2 py-1 rounded-md hover:bg-primary-50 transition-colors"
+          >
+            Manage
+          </Link>
+        </div>
+        <div>
+          <p className="text-xs text-gray-600 mb-3 bg-gray-50 rounded-lg p-2 border border-gray-100">
+            Add sample text to influence your newsletter style. Help the AI understand your preferred writing tone and style.
+          </p>
+          <Link
+            to="/user-style-sample"
+            className="inline-flex items-center gap-2 px-3 py-1.5 border border-transparent text-xs font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700 transition-colors"
+          >
+            <FileText className="h-3 w-3" />
+            Add Style Sample
+          </Link>
+        </div>
       </div>
 
       {/* Admin Section (if superadmin) */}

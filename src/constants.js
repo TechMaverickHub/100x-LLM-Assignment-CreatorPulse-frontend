@@ -45,6 +45,11 @@ export const API_ROUTES = {
   USER_DETAIL: "user/", // Will be used with ID parameter like user/7
   USER_ACTIVATE: "user/", // Will be used with ID parameter like user/7/activate
   
+  // User Style Sample Routes
+  USER_STYLE_SAMPLE: "sample/",
+  USER_STYLE_SAMPLE_LIST: "sample/list-filter",
+  USER_STYLE_SAMPLE_DETAIL: "sample/", // Will be used with ID parameter like sample/5
+  
   // Analytics Routes
   ANALYTICS_DAILY_REGISTRATIONS: "analytics/users/daily-registrations/",
   ANALYTICS_ACTIVE_USERS: "analytics/users/active/",
@@ -143,6 +148,9 @@ export const FULL_API_URLS = {
   USER_LIST_FILTER: buildApiUrl(API_ROUTES.USER_LIST_FILTER),
   USER_DETAIL: buildApiUrl(API_ROUTES.USER_DETAIL),
   USER_ACTIVATE: buildApiUrl(API_ROUTES.USER_ACTIVATE),
+  USER_STYLE_SAMPLE: buildApiUrl(API_ROUTES.USER_STYLE_SAMPLE),
+  USER_STYLE_SAMPLE_LIST: buildApiUrl(API_ROUTES.USER_STYLE_SAMPLE_LIST),
+  USER_STYLE_SAMPLE_DETAIL: buildApiUrl(API_ROUTES.USER_STYLE_SAMPLE_DETAIL),
   ANALYTICS_DAILY_REGISTRATIONS: buildApiUrl(API_ROUTES.ANALYTICS_DAILY_REGISTRATIONS),
   ANALYTICS_ACTIVE_USERS: buildApiUrl(API_ROUTES.ANALYTICS_ACTIVE_USERS),
   ANALYTICS_USERS_PER_TOPIC: buildApiUrl(API_ROUTES.ANALYTICS_USERS_PER_TOPIC),

@@ -14,6 +14,7 @@ import TopicsPage from './pages/TopicsPage.jsx';
 import NewsletterPage from './pages/NewsletterPage.jsx';
 import NewsletterListPage from './pages/NewsletterListPage.jsx';
 import SourceDashboard from './pages/SourceDashboard.jsx';
+import UserStyleSample from './pages/UserStyleSample.jsx';
 import SourcesPage from './pages/admin/SourcesPage.jsx';
 import ManageUsers from './pages/admin/ManageUsers.jsx';
 import AnalyticsPage from './pages/admin/AnalyticsPage.jsx';
@@ -120,6 +121,17 @@ function App() {
             <ProtectedRoute>
               <Layout>
                 <SourceDashboard />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+        
+        <Route
+          path="/user-style-sample"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <UserStyleSample />
               </Layout>
             </ProtectedRoute>
           }
