@@ -6,6 +6,7 @@ import HTMLViewer from '../components/HTMLViewer.jsx';
 
 const NewsletterPage = () => {
   const [generatedNewsletter, setGeneratedNewsletter] = useState(null);
+  const [editedHtml, setEditedHtml] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [generateError, setGenerateError] = useState(null);
   const [recipientEmail, setRecipientEmail] = useState('');
@@ -62,6 +63,7 @@ const NewsletterPage = () => {
       setSendSuccess(null);
       const response = await newsletterService.generateNewsletter();
       setGeneratedNewsletter(response);
+      setEditedHtml(response.results); // Initialize editable HTML
     } catch (err) {
       setGenerateError('Failed to generate newsletter');
       console.error('Error generating newsletter:', err);
@@ -88,7 +90,7 @@ const NewsletterPage = () => {
       
       const recipient = recipientEmail.trim() || null;
       const response = await newsletterService.sendNewsletter(
-        generatedNewsletter.results, 
+        editedHtml, // Send the edited HTML instead of original
         recipient
       );
       
@@ -166,36 +168,54 @@ const NewsletterPage = () => {
             <h2 className="text-xl font-semibold text-gray-900">Generated Newsletter</h2>
           </div>
           
-          {/* Direct HTML Preview */}
-          <div className="border border-gray-200 rounded-lg overflow-hidden">
-            <div className="bg-gray-50 px-4 py-2 border-b border-gray-200">
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-gray-700">Newsletter Preview</span>
-                <button
-                  onClick={() => {
-                    const blob = new Blob([generatedNewsletter.results], { type: 'text/html' });
-                    const url = URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = 'newsletter.html';
-                    document.body.appendChild(a);
-                    a.click();
-                    document.body.removeChild(a);
-                    URL.revokeObjectURL(url);
-                  }}
-                  className="text-xs px-2 py-1 bg-primary-600 text-white rounded hover:bg-primary-700 transition-colors"
-                >
-                  Download HTML
-                </button>
+          {/* 2-Column Layout: HTML Code and Preview */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Left Column - HTML Code */}
+            <div className="border border-gray-200 rounded-lg overflow-hidden">
+              <div className="bg-gray-50 px-4 py-2 border-b border-gray-200">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium text-gray-700">HTML Source Code (Editable)</span>
+                  <button
+                    onClick={() => {
+                      const blob = new Blob([editedHtml], { type: 'text/html' });
+                      const url = URL.createObjectURL(blob);
+                      const a = document.createElement('a');
+                      a.href = url;
+                      a.download = 'newsletter.html';
+                      document.body.appendChild(a);
+                      a.click();
+                      document.body.removeChild(a);
+                      URL.revokeObjectURL(url);
+                    }}
+                    className="text-xs px-2 py-1 bg-primary-600 text-white rounded hover:bg-primary-700 transition-colors"
+                  >
+                    Download HTML
+                  </button>
+                </div>
+              </div>
+              <div className="h-96 overflow-hidden">
+                <textarea
+                  value={editedHtml}
+                  onChange={(e) => setEditedHtml(e.target.value)}
+                  className="w-full h-full p-4 bg-gray-900 text-green-400 font-mono text-sm resize-none focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  spellCheck="false"
+                />
               </div>
             </div>
-            <div className="h-96 overflow-y-auto">
-              <iframe
-                srcDoc={generatedNewsletter.results}
-                className="w-full h-full border-0"
-                title="Newsletter Preview"
-                sandbox="allow-same-origin"
-              />
+
+            {/* Right Column - Preview */}
+            <div className="border border-gray-200 rounded-lg overflow-hidden">
+              <div className="bg-gray-50 px-4 py-2 border-b border-gray-200">
+                <span className="text-sm font-medium text-gray-700">Live Preview</span>
+              </div>
+              <div className="h-96 overflow-y-auto">
+                <iframe
+                  srcDoc={editedHtml}
+                  className="w-full h-full border-0"
+                  title="Newsletter Preview"
+                  sandbox="allow-same-origin"
+                />
+              </div>
             </div>
           </div>
         </div>
