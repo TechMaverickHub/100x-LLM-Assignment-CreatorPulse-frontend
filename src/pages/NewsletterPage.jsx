@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import { newsletterService } from '../services/newsletterService.js';
-import { RefreshCw, X, Mail, Send } from 'lucide-react';
+import { draftService } from '../services/draftService.js';
+import { RefreshCw, X, Mail, Send, Save, FolderOpen, GitCompare } from 'lucide-react';
 import HTMLViewer from '../components/HTMLViewer.jsx';
+import DiffViewer from '../components/DiffViewer.jsx';
 
 const NewsletterPage = () => {
   const [generatedNewsletter, setGeneratedNewsletter] = useState(null);
@@ -15,6 +17,22 @@ const NewsletterPage = () => {
   const [sendSuccess, setSendSuccess] = useState(null);
   const [cooldownTime, setCooldownTime] = useState(0);
   const [isInCooldown, setIsInCooldown] = useState(false);
+  
+  // Draft system states
+  const [currentTemplateId, setCurrentTemplateId] = useState(null);
+  const [showTemplateModal, setShowTemplateModal] = useState(false);
+  const [templateName, setTemplateName] = useState('');
+  const [isSavingDraft, setIsSavingDraft] = useState(false);
+  const [draftError, setDraftError] = useState(null);
+  const [draftSuccess, setDraftSuccess] = useState(null);
+  const [showDraftList, setShowDraftList] = useState(false);
+  const [draftList, setDraftList] = useState([]);
+  const [loadingDrafts, setLoadingDrafts] = useState(false);
+  const [selectedDraftForDiff, setSelectedDraftForDiff] = useState(null);
+  const [showDiffViewer, setShowDiffViewer] = useState(false);
+  const [diffOldContent, setDiffOldContent] = useState('');
+  const [diffNewContent, setDiffNewContent] = useState('');
+  
   const { user } = useSelector(state => state.auth);
 
   // Timer effect for cooldown
@@ -118,6 +136,121 @@ const NewsletterPage = () => {
     return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
   };
 
+  // Draft system functions
+  const handleSaveDraft = () => {
+    if (!currentTemplateId) {
+      // First save - need template name
+      setShowTemplateModal(true);
+    } else {
+      // Subsequent saves - just save draft
+      saveDraftToServer();
+    }
+  };
+
+  const handleCreateTemplate = async () => {
+    if (!templateName.trim()) {
+      setDraftError('Please enter a template name');
+      return;
+    }
+
+    try {
+      setIsSavingDraft(true);
+      setDraftError(null);
+      setDraftSuccess(null);
+
+      const response = await draftService.createTemplate(templateName, editedHtml);
+      
+      if (response.results && response.results.newsletter_template) {
+        setCurrentTemplateId(response.results.newsletter_template);
+        setDraftSuccess('Template created and draft saved successfully!');
+        setShowTemplateModal(false);
+        setTemplateName('');
+      }
+    } catch (error) {
+      setDraftError('Failed to create template');
+      console.error('Error creating template:', error);
+    } finally {
+      setIsSavingDraft(false);
+    }
+  };
+
+  const saveDraftToServer = async () => {
+    try {
+      setIsSavingDraft(true);
+      setDraftError(null);
+      setDraftSuccess(null);
+
+      const response = await draftService.saveDraft(currentTemplateId, editedHtml);
+      
+      if (response.status === 201) {
+        setDraftSuccess('Draft saved successfully!');
+        // Clear success message after 3 seconds
+        setTimeout(() => setDraftSuccess(null), 3000);
+      }
+    } catch (error) {
+      setDraftError('Failed to save draft');
+      console.error('Error saving draft:', error);
+    } finally {
+      setIsSavingDraft(false);
+    }
+  };
+
+  const handleLoadDrafts = async () => {
+    if (!currentTemplateId) {
+      setDraftError('Please save a template first');
+      return;
+    }
+
+    try {
+      setLoadingDrafts(true);
+      setDraftError(null);
+      
+      const response = await draftService.getDraftList(currentTemplateId);
+      
+      if (response.results) {
+        setDraftList(response.results);
+        setShowDraftList(true);
+      }
+    } catch (error) {
+      setDraftError('Failed to load drafts');
+      console.error('Error loading drafts:', error);
+    } finally {
+      setLoadingDrafts(false);
+    }
+  };
+
+  const handleLoadDraft = async (draftId) => {
+    try {
+      const response = await draftService.getDraft(draftId);
+      
+      if (response.results && response.results.html_content) {
+        setEditedHtml(response.results.html_content);
+        setDraftSuccess(`Draft v${response.results.version} loaded successfully!`);
+        setShowDraftList(false);
+        setTimeout(() => setDraftSuccess(null), 3000);
+      }
+    } catch (error) {
+      setDraftError('Failed to load draft');
+      console.error('Error loading draft:', error);
+    }
+  };
+
+  const handleCompareDrafts = async (draftId) => {
+    try {
+      const response = await draftService.getDraft(draftId);
+      
+      if (response.results && response.results.html_content) {
+        setDiffOldContent(response.results.html_content);
+        setDiffNewContent(editedHtml);
+        setShowDiffViewer(true);
+        setShowDraftList(false);
+      }
+    } catch (error) {
+      setDraftError('Failed to load draft for comparison');
+      console.error('Error loading draft for comparison:', error);
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Newsletter Generator Header */}
@@ -162,10 +295,56 @@ const NewsletterPage = () => {
         </div>
       )}
 
+      {/* Draft Success/Error Messages */}
+      {draftSuccess && (
+        <div className="bg-green-50 border border-green-200 rounded-xl p-4">
+          <div className="flex items-center">
+            <Save className="h-5 w-5 text-green-400 mr-2" />
+            <span className="text-sm text-green-700">{draftSuccess}</span>
+          </div>
+        </div>
+      )}
+
+      {draftError && (
+        <div className="bg-red-50 border border-red-200 rounded-xl p-4">
+          <div className="flex items-center">
+            <X className="h-5 w-5 text-red-400 mr-2" />
+            <span className="text-sm text-red-700">{draftError}</span>
+          </div>
+        </div>
+      )}
+
       {generatedNewsletter && (
         <div className="bg-white rounded-xl shadow-sm border border-primary-200 p-6">
-          <div className="mb-4">
+          <div className="mb-4 flex items-center justify-between">
             <h2 className="text-xl font-semibold text-gray-900">Generated Newsletter</h2>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={handleLoadDrafts}
+                disabled={loadingDrafts || !currentTemplateId}
+                className="inline-flex items-center px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                <FolderOpen className="h-4 w-4 mr-2" />
+                {loadingDrafts ? 'Loading...' : 'View Drafts'}
+              </button>
+              <button
+                onClick={handleSaveDraft}
+                disabled={isSavingDraft || !editedHtml}
+                className="inline-flex items-center px-3 py-2 text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 rounded-md disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                {isSavingDraft ? (
+                  <>
+                    <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  <>
+                    <Save className="h-4 w-4 mr-2" />
+                    {currentTemplateId ? 'Save Draft' : 'Save as Template'}
+                  </>
+                )}
+              </button>
+            </div>
           </div>
           
           {/* 2-Column Layout: HTML Code and Preview */}
@@ -324,6 +503,113 @@ const NewsletterPage = () => {
           </a>
         </div>
       </div>
+
+      {/* Template Name Modal */}
+      {showTemplateModal && (
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-black bg-opacity-50">
+          <div className="flex min-h-screen items-center justify-center p-4">
+            <div className="relative bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Create Template</h3>
+              <p className="text-sm text-gray-600 mb-4">
+                Enter a name for your newsletter template. This will be used to organize your drafts.
+              </p>
+              <input
+                type="text"
+                value={templateName}
+                onChange={(e) => setTemplateName(e.target.value)}
+                placeholder="e.g., Weekly Digest - October 2025"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 mb-4"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    handleCreateTemplate();
+                  }
+                }}
+              />
+              <div className="flex justify-end gap-3">
+                <button
+                  onClick={() => {
+                    setShowTemplateModal(false);
+                    setTemplateName('');
+                    setDraftError(null);
+                  }}
+                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleCreateTemplate}
+                  disabled={isSavingDraft || !templateName.trim()}
+                  className="px-4 py-2 text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isSavingDraft ? 'Creating...' : 'Create Template'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Draft List Modal */}
+      {showDraftList && (
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-black bg-opacity-50">
+          <div className="flex min-h-screen items-center justify-center p-4">
+            <div className="relative bg-white rounded-lg shadow-xl max-w-2xl w-full p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-gray-900">Draft History</h3>
+                <button
+                  onClick={() => setShowDraftList(false)}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+              
+              {draftList.length === 0 ? (
+                <p className="text-center text-gray-500 py-8">No drafts found</p>
+              ) : (
+                <div className="space-y-2 max-h-96 overflow-y-auto">
+                  {draftList.map((draft) => (
+                    <div
+                      key={draft.pk}
+                      className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+                    >
+                      <div className="flex items-center gap-3">
+                        <span className="text-sm font-medium text-gray-900">
+                          Version {draft.version}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => handleCompareDrafts(draft.pk)}
+                          className="inline-flex items-center px-3 py-1.5 text-xs font-medium text-purple-700 bg-purple-50 hover:bg-purple-100 rounded-md transition-colors"
+                        >
+                          <GitCompare className="h-3 w-3 mr-1" />
+                          Compare
+                        </button>
+                        <button
+                          onClick={() => handleLoadDraft(draft.pk)}
+                          className="inline-flex items-center px-3 py-1.5 text-xs font-medium text-primary-700 bg-primary-50 hover:bg-primary-100 rounded-md transition-colors"
+                        >
+                          Load
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Diff Viewer */}
+      {showDiffViewer && (
+        <DiffViewer
+          oldContent={diffOldContent}
+          newContent={diffNewContent}
+          onClose={() => setShowDiffViewer(false)}
+        />
+      )}
     </div>
   );
 };
