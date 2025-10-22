@@ -51,6 +51,9 @@ export const API_ROUTES = {
   USER_STYLE_SAMPLE_LIST: "sample/list-filter",
   USER_STYLE_SAMPLE_DETAIL: "sample/", // Will be used with ID parameter like sample/5
   
+  // Credit Routes
+  CREDIT_INFO: "credit/",
+  
   // Analytics Routes
   ANALYTICS_DAILY_REGISTRATIONS: "analytics/users/daily-registrations/",
   ANALYTICS_ACTIVE_USERS: "analytics/users/active/",

@@ -1,8 +1,33 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Check, Star, Zap, Crown } from 'lucide-react';
+import { creditService } from '../services/creditService.js';
 
 const SubscriptionPage = () => {
   const [selectedPlan, setSelectedPlan] = useState('free');
+  const [creditsRemaining, setCreditsRemaining] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  // Fetch credits on component mount
+  useEffect(() => {
+    const fetchCredits = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const response = await creditService.getCreditInfo();
+        setCreditsRemaining(response.results.credit_remaining);
+      } catch (err) {
+        console.error('Error fetching credits:', err);
+        setError(err.message);
+        // Set default credits if API fails
+        setCreditsRemaining(100);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCredits();
+  }, []);
 
   const plans = [
     {
@@ -108,9 +133,26 @@ const SubscriptionPage = () => {
           </div>
           <div className="text-right">
             <p className="text-sm text-gray-600">Credits remaining</p>
-            <p className="text-2xl font-bold text-primary-600">100</p>
+            {loading ? (
+              <div className="animate-pulse">
+                <div className="h-8 w-16 bg-gray-200 rounded"></div>
+              </div>
+            ) : error ? (
+              <div className="text-red-600 text-sm">
+                Error loading credits
+              </div>
+            ) : (
+              <p className="text-2xl font-bold text-primary-600">{creditsRemaining}</p>
+            )}
           </div>
         </div>
+        {error && (
+          <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded-lg">
+            <p className="text-sm text-red-600">
+              Unable to fetch current credits. Showing default value.
+            </p>
+          </div>
+        )}
       </div>
 
       {/* Plans Grid */}
