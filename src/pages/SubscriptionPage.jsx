@@ -29,7 +29,7 @@ const SubscriptionPage = () => {
     {
       id: 'standard',
       name: 'Standard',
-      price: '$9.99',
+      price: '₹799',
       period: 'per month',
       credits: '1,000 credits',
       description: 'For regular newsletter creators',
@@ -52,7 +52,7 @@ const SubscriptionPage = () => {
     {
       id: 'premium',
       name: 'Premium',
-      price: '$19.99',
+      price: '₹1,599',
       period: 'per month',
       credits: 'Unlimited credits',
       description: 'For power users and businesses',
