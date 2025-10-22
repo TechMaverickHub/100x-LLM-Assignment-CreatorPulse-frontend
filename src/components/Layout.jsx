@@ -15,7 +15,8 @@ import {
   Globe,
   Users,
   BarChart3,
-  FileText
+  FileText,
+  FolderOpen
 } from 'lucide-react';
 
 const Layout = ({ children }) => {
@@ -51,6 +52,7 @@ const Layout = ({ children }) => {
         { name: 'Sources', href: '/sources', icon: Globe },
         { name: 'User Style Sample', href: '/user-style-sample', icon: FileText },
         { name: 'Newsletter', href: '/newsletter', icon: Newspaper },
+        { name: 'Templates', href: '/templates', icon: FolderOpen },
         { name: 'Newsletter History', href: '/newsletter/history', icon: Newspaper },
       ];
     }

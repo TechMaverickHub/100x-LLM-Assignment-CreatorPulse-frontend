@@ -20,6 +20,7 @@ const NewsletterPage = () => {
   
   // Draft system states
   const [currentTemplateId, setCurrentTemplateId] = useState(null);
+  const [currentTemplateName, setCurrentTemplateName] = useState('');
   const [showTemplateModal, setShowTemplateModal] = useState(false);
   const [templateName, setTemplateName] = useState('');
   const [isSavingDraft, setIsSavingDraft] = useState(false);
@@ -34,6 +35,12 @@ const NewsletterPage = () => {
   const [diffOldContent, setDiffOldContent] = useState('');
   const [diffNewContent, setDiffNewContent] = useState('');
   const [diffVersionInfo, setDiffVersionInfo] = useState({ oldVersion: null, newVersion: null });
+  
+  // Template list states
+  const [showTemplateList, setShowTemplateList] = useState(false);
+  const [templateList, setTemplateList] = useState([]);
+  const [loadingTemplates, setLoadingTemplates] = useState(false);
+  const [templateSearchQuery, setTemplateSearchQuery] = useState('');
   
   const { user } = useSelector(state => state.auth);
 
@@ -164,6 +171,7 @@ const NewsletterPage = () => {
       
       if (response.results && response.results.newsletter_template) {
         setCurrentTemplateId(response.results.newsletter_template);
+        setCurrentTemplateName(templateName);
         setDraftSuccess('Template created and draft saved successfully!');
         setShowTemplateModal(false);
         setTemplateName('');
@@ -294,6 +302,66 @@ const NewsletterPage = () => {
     setSelectedDraft2(null);
   };
 
+  // Template list functions
+  const handleShowTemplateList = async () => {
+    try {
+      setLoadingTemplates(true);
+      setDraftError(null);
+      
+      const response = await draftService.getTemplateList(1, 20, templateSearchQuery);
+      
+      if (response.results) {
+        setTemplateList(response.results);
+        setShowTemplateList(true);
+      }
+    } catch (error) {
+      setDraftError('Failed to load templates');
+      console.error('Error loading templates:', error);
+    } finally {
+      setLoadingTemplates(false);
+    }
+  };
+
+  const handleSelectTemplate = async (template) => {
+    setCurrentTemplateId(template.pk);
+    setCurrentTemplateName(template.name);
+    setShowTemplateList(false);
+    
+    // Automatically load drafts for this template
+    try {
+      setLoadingDrafts(true);
+      setDraftError(null);
+      
+      const response = await draftService.getDraftList(template.pk);
+      
+      if (response.results) {
+        setDraftList(response.results);
+        setShowDraftList(true);
+      }
+    } catch (error) {
+      setDraftError('Failed to load drafts for this template');
+      console.error('Error loading drafts:', error);
+    } finally {
+      setLoadingDrafts(false);
+    }
+  };
+
+  const handleSearchTemplates = async () => {
+    try {
+      setLoadingTemplates(true);
+      const response = await draftService.getTemplateList(1, 20, templateSearchQuery);
+      
+      if (response.results) {
+        setTemplateList(response.results);
+      }
+    } catch (error) {
+      setDraftError('Failed to search templates');
+      console.error('Error searching templates:', error);
+    } finally {
+      setLoadingTemplates(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Newsletter Generator Header */}
@@ -360,16 +428,33 @@ const NewsletterPage = () => {
       {generatedNewsletter && (
         <div className="bg-white rounded-xl shadow-sm border border-primary-200 p-6">
           <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-xl font-semibold text-gray-900">Generated Newsletter</h2>
+            <div>
+              <h2 className="text-xl font-semibold text-gray-900">Generated Newsletter</h2>
+              {currentTemplateName && (
+                <p className="text-sm text-gray-600 mt-1">
+                  Template: <span className="font-medium text-primary-600">{currentTemplateName}</span>
+                </p>
+              )}
+            </div>
             <div className="flex items-center gap-2">
               <button
-                onClick={handleLoadDrafts}
-                disabled={loadingDrafts || !currentTemplateId}
+                onClick={handleShowTemplateList}
+                disabled={loadingTemplates}
                 className="inline-flex items-center px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 <FolderOpen className="h-4 w-4 mr-2" />
-                {loadingDrafts ? 'Loading...' : 'View Drafts'}
+                {loadingTemplates ? 'Loading...' : 'Browse Templates'}
               </button>
+              {currentTemplateId && (
+                <button
+                  onClick={handleLoadDrafts}
+                  disabled={loadingDrafts}
+                  className="inline-flex items-center px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  <FolderOpen className="h-4 w-4 mr-2" />
+                  {loadingDrafts ? 'Loading...' : 'View Drafts'}
+                </button>
+              )}
               <button
                 onClick={handleSaveDraft}
                 disabled={isSavingDraft || !editedHtml}
@@ -546,6 +631,92 @@ const NewsletterPage = () => {
           </a>
         </div>
       </div>
+
+      {/* Template List Modal */}
+      {showTemplateList && (
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-black bg-opacity-50">
+          <div className="flex min-h-screen items-center justify-center p-4">
+            <div className="relative bg-white rounded-lg shadow-xl max-w-2xl w-full p-6">
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900">Select Template</h3>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Choose a template to view its drafts
+                  </p>
+                </div>
+                <button
+                  onClick={() => {
+                    setShowTemplateList(false);
+                    setTemplateSearchQuery('');
+                  }}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+
+              {/* Search Bar */}
+              <div className="mb-4">
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={templateSearchQuery}
+                    onChange={(e) => setTemplateSearchQuery(e.target.value)}
+                    placeholder="Search templates by name..."
+                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        handleSearchTemplates();
+                      }
+                    }}
+                  />
+                  <button
+                    onClick={handleSearchTemplates}
+                    disabled={loadingTemplates}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 px-3 py-1 text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 rounded-md disabled:opacity-50"
+                  >
+                    Search
+                  </button>
+                </div>
+              </div>
+              
+              {templateList.length === 0 ? (
+                <p className="text-center text-gray-500 py-8">No templates found</p>
+              ) : (
+                <div className="space-y-2 max-h-96 overflow-y-auto">
+                  {templateList.map((template) => (
+                    <button
+                      key={template.pk}
+                      onClick={() => handleSelectTemplate(template)}
+                      className={`w-full text-left p-4 border-2 rounded-lg transition-all hover:bg-primary-50 hover:border-primary-300 ${
+                        currentTemplateId === template.pk
+                          ? 'border-primary-500 bg-primary-50'
+                          : 'border-gray-200'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex-1">
+                          <h4 className={`text-sm font-medium ${
+                            currentTemplateId === template.pk ? 'text-primary-900' : 'text-gray-900'
+                          }`}>
+                            {template.name}
+                          </h4>
+                          <p className="text-xs text-gray-500 mt-1">ID: {template.pk}</p>
+                        </div>
+                        {currentTemplateId === template.pk && (
+                          <span className="ml-2 px-2 py-1 text-xs font-medium text-primary-700 bg-primary-100 rounded">
+                            Current
+                          </span>
+                        )}
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Template Name Modal */}
       {showTemplateModal && (

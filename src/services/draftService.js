@@ -1,6 +1,21 @@
 import api from './api.js';
 
 export const draftService = {
+  // Get list of all templates with optional filters
+  getTemplateList: async (page = 1, pageSize = 20, name = '') => {
+    try {
+      let url = `/newsletter/template/list-filter?page=${page}&page_size=${pageSize}`;
+      if (name) {
+        url += `&name=${encodeURIComponent(name)}`;
+      }
+      const response = await api.get(url);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching template list:', error);
+      throw error;
+    }
+  },
+
   // Create a new template (first save with template name)
   createTemplate: async (name, htmlContent) => {
     try {
