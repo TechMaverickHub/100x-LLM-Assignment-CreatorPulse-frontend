@@ -16,7 +16,8 @@ import {
   Users,
   BarChart3,
   FileText,
-  FolderOpen
+  FolderOpen,
+  CreditCard
 } from 'lucide-react';
 
 const Layout = ({ children }) => {
@@ -54,6 +55,7 @@ const Layout = ({ children }) => {
         { name: 'Newsletter', href: '/newsletter', icon: Newspaper },
         { name: 'Templates', href: '/templates', icon: FolderOpen },
         { name: 'Newsletter History', href: '/newsletter/history', icon: Newspaper },
+        { name: 'Subscription', href: '/subscription', icon: CreditCard },
       ];
     }
   };

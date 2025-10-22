@@ -16,6 +16,7 @@ import NewsletterListPage from './pages/NewsletterListPage.jsx';
 import TemplatePage from './pages/TemplatePage.jsx';
 import SourceDashboard from './pages/SourceDashboard.jsx';
 import UserStyleSample from './pages/UserStyleSample.jsx';
+import SubscriptionPage from './pages/SubscriptionPage.jsx';
 import SourcesPage from './pages/admin/SourcesPage.jsx';
 import ManageUsers from './pages/admin/ManageUsers.jsx';
 import AnalyticsPage from './pages/admin/AnalyticsPage.jsx';
@@ -144,6 +145,17 @@ function App() {
             <ProtectedRoute>
               <Layout>
                 <UserStyleSample />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+        
+        <Route
+          path="/subscription"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <SubscriptionPage />
               </Layout>
             </ProtectedRoute>
           }
