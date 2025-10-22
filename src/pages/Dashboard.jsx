@@ -1,17 +1,21 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchUserTopics } from '../store/topicSlice.js';
 import { fetchNewsletterCount, fetchLatestNewsletter } from '../store/mailSlice.js';
 import { isAdmin } from '../constants.js';
 import HTMLViewer from '../components/HTMLViewer.jsx';
-import { BookOpen, Newspaper, TrendingUp, Users, FileText } from 'lucide-react';
+import { creditService } from '../services/creditService.js';
+import { BookOpen, Newspaper, TrendingUp, Users, FileText, CreditCard } from 'lucide-react';
 
 const Dashboard = () => {
   const dispatch = useDispatch();
   const { user } = useSelector(state => state.auth);
   const { userTopics, loading } = useSelector(state => state.topics);
   const { totalNewsletterCount, latestNewsletter } = useSelector(state => state.mail);
+  const [creditsRemaining, setCreditsRemaining] = useState(0);
+  const [creditsLoading, setCreditsLoading] = useState(true);
+  const [creditsError, setCreditsError] = useState(null);
 
   useEffect(() => {
     console.log('Dashboard - Fetching user topics, newsletter count, and latest newsletter');
@@ -19,6 +23,27 @@ const Dashboard = () => {
     dispatch(fetchNewsletterCount());
     dispatch(fetchLatestNewsletter());
   }, [dispatch]);
+
+  // Fetch credits
+  useEffect(() => {
+    const fetchCredits = async () => {
+      try {
+        setCreditsLoading(true);
+        setCreditsError(null);
+        const response = await creditService.getCreditInfo();
+        setCreditsRemaining(response.results.credit_remaining);
+      } catch (err) {
+        console.error('Error fetching credits:', err);
+        setCreditsError(err.message);
+        // Set default credits if API fails
+        setCreditsRemaining(100);
+      } finally {
+        setCreditsLoading(false);
+      }
+    };
+
+    fetchCredits();
+  }, []);
 
   // Debug logging
   useEffect(() => {
@@ -30,6 +55,13 @@ const Dashboard = () => {
   }, [userTopics, loading]);
 
   const stats = [
+    {
+      name: 'Credits Remaining',
+      value: creditsLoading ? '...' : creditsError ? 'Error' : creditsRemaining,
+      icon: CreditCard,
+      color: 'text-orange-600',
+      bgColor: 'bg-orange-100'
+    },
     {
       name: 'Selected Topics',
       value: userTopics.length,
@@ -66,7 +98,7 @@ const Dashboard = () => {
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {stats.map((stat) => (
           <div key={stat.name} className="bg-white overflow-hidden shadow-sm border border-primary-200 rounded-xl">
             <div className="p-5">
