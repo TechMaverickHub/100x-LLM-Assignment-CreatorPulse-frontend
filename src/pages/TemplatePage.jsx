@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { draftService } from '../services/draftService.js';
-import { Search, FileText, GitCompare, Eye, RefreshCw, X, Plus } from 'lucide-react';
+import { newsletterService } from '../services/newsletterService.js';
+import { Search, FileText, GitCompare, Eye, RefreshCw, X, Plus, Mail, Send } from 'lucide-react';
 import DiffViewer from '../components/DiffViewer.jsx';
 
 const TemplatePage = () => {
@@ -27,6 +28,16 @@ const TemplatePage = () => {
   const [diffNewContent, setDiffNewContent] = useState('');
   const [diffVersionInfo, setDiffVersionInfo] = useState({ oldVersion: null, newVersion: null });
 
+  // Send newsletter states
+  const [showSendModal, setShowSendModal] = useState(false);
+  const [selectedDraftForSend, setSelectedDraftForSend] = useState(null);
+  const [recipientEmail, setRecipientEmail] = useState('');
+  const [isSending, setIsSending] = useState(false);
+  const [sendError, setSendError] = useState(null);
+  const [sendSuccess, setSendSuccess] = useState(null);
+  const [cooldownTime, setCooldownTime] = useState(0);
+  const [isInCooldown, setIsInCooldown] = useState(false);
+
   // Load templates on mount
   useEffect(() => {
     loadTemplates();
@@ -38,6 +49,44 @@ const TemplatePage = () => {
       loadDrafts(selectedTemplate.pk);
     }
   }, [selectedTemplate]);
+
+  // Timer effect for cooldown
+  useEffect(() => {
+    let interval = null;
+    
+    if (cooldownTime > 0) {
+      interval = setInterval(() => {
+        setCooldownTime(time => {
+          if (time <= 1) {
+            setIsInCooldown(false);
+            return 0;
+          }
+          return time - 1;
+        });
+      }, 1000);
+    }
+    
+    return () => {
+      if (interval) {
+        clearInterval(interval);
+      }
+    };
+  }, [cooldownTime]);
+
+  // Check for existing cooldown on component mount
+  useEffect(() => {
+    const lastSendTime = localStorage.getItem('lastNewsletterSend');
+    if (lastSendTime) {
+      const timeSinceLastSend = Date.now() - parseInt(lastSendTime);
+      const cooldownPeriod = 10 * 60 * 1000; // 10 minutes in milliseconds
+      
+      if (timeSinceLastSend < cooldownPeriod) {
+        const remainingTime = Math.ceil((cooldownPeriod - timeSinceLastSend) / 1000);
+        setCooldownTime(remainingTime);
+        setIsInCooldown(true);
+      }
+    }
+  }, []);
 
   const loadTemplates = async (search = '') => {
     try {
@@ -144,6 +193,70 @@ const TemplatePage = () => {
   const handleClearSelection = () => {
     setSelectedDraft1(null);
     setSelectedDraft2(null);
+  };
+
+  // Send newsletter functions
+  const handleSendDraft = async (draftId) => {
+    try {
+      const response = await draftService.getDraft(draftId);
+      if (response.results && response.results.html_content) {
+        setSelectedDraftForSend(response.results);
+        setShowSendModal(true);
+        setRecipientEmail('');
+        setSendError(null);
+        setSendSuccess(null);
+      }
+    } catch (err) {
+      setError('Failed to load draft for sending');
+      console.error('Error loading draft for sending:', err);
+    }
+  };
+
+  const handleSendNewsletter = async () => {
+    if (!selectedDraftForSend) {
+      setSendError('Please select a draft to send');
+      return;
+    }
+
+    if (isInCooldown) {
+      setSendError('Please wait before sending another newsletter');
+      return;
+    }
+
+    try {
+      setIsSending(true);
+      setSendError(null);
+      setSendSuccess(null);
+      
+      const recipient = recipientEmail.trim() || null;
+      const response = await newsletterService.sendNewsletter(
+        selectedDraftForSend.html_content,
+        recipient
+      );
+      
+      setSendSuccess(recipient 
+        ? `Newsletter sent successfully to ${recipient}` 
+        : 'Newsletter sent successfully'
+      );
+      setRecipientEmail('');
+      setShowSendModal(false);
+      
+      // Start cooldown timer (10 minutes = 600 seconds)
+      setCooldownTime(600);
+      setIsInCooldown(true);
+      localStorage.setItem('lastNewsletterSend', Date.now().toString());
+    } catch (err) {
+      setSendError('Failed to send newsletter');
+      console.error('Error sending newsletter:', err);
+    } finally {
+      setIsSending(false);
+    }
+  };
+
+  const formatTime = (seconds) => {
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+    return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
   };
 
   return (
@@ -327,15 +440,22 @@ const TemplatePage = () => {
                           </div>
                         </div>
 
-                        <div className="flex items-center gap-2">
-                          <button
-                            onClick={() => handlePreviewDraft(draft.pk)}
-                            className="flex-1 inline-flex items-center justify-center px-3 py-2 text-xs font-medium text-primary-700 bg-primary-50 hover:bg-primary-100 rounded-md transition-colors"
-                          >
-                            <Eye className="h-3 w-3 mr-1" />
-                            Preview
-                          </button>
-                        </div>
+                         <div className="flex items-center gap-2">
+                           <button
+                             onClick={() => handlePreviewDraft(draft.pk)}
+                             className="flex-1 inline-flex items-center justify-center px-3 py-2 text-xs font-medium text-primary-700 bg-primary-50 hover:bg-primary-100 rounded-md transition-colors"
+                           >
+                             <Eye className="h-3 w-3 mr-1" />
+                             Preview
+                           </button>
+                           <button
+                             onClick={() => handleSendDraft(draft.pk)}
+                             className="flex-1 inline-flex items-center justify-center px-3 py-2 text-xs font-medium text-white bg-green-600 hover:bg-green-700 rounded-md transition-colors"
+                           >
+                             <Send className="h-3 w-3 mr-1" />
+                             Send
+                           </button>
+                         </div>
                       </div>
                     );
                   })}
@@ -384,19 +504,123 @@ const TemplatePage = () => {
         </div>
       )}
 
-      {/* Diff Viewer */}
-      {showDiffViewer && (
-        <DiffViewer
-          oldContent={diffOldContent}
-          newContent={diffNewContent}
-          oldVersion={diffVersionInfo.oldVersion}
-          newVersion={diffVersionInfo.newVersion}
-          onClose={() => setShowDiffViewer(false)}
-        />
-      )}
-    </div>
-  );
-};
+       {/* Send Newsletter Modal */}
+       {showSendModal && selectedDraftForSend && (
+         <div className="fixed inset-0 z-50 overflow-y-auto bg-black bg-opacity-50">
+           <div className="flex min-h-screen items-center justify-center p-4">
+             <div className="relative bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+               <div className="flex items-center justify-between mb-4">
+                 <h3 className="text-lg font-semibold text-gray-900">Send Newsletter</h3>
+                 <button
+                   onClick={() => {
+                     setShowSendModal(false);
+                     setSelectedDraftForSend(null);
+                     setRecipientEmail('');
+                     setSendError(null);
+                     setSendSuccess(null);
+                   }}
+                   className="text-gray-400 hover:text-gray-600"
+                 >
+                   <X className="h-5 w-5" />
+                 </button>
+               </div>
 
-export default TemplatePage;
+               <p className="text-sm text-gray-600 mb-4">
+                 Send the generated newsletter via email. Leave recipient empty to send to default recipients.
+               </p>
+
+               {isInCooldown && (
+                 <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-md">
+                   <p className="text-sm text-yellow-700">
+                     ⏰ Email sending is restricted for 10 minutes after each send to prevent spam. 
+                     Time remaining: <span className="font-medium">{formatTime(cooldownTime)}</span>
+                   </p>
+                 </div>
+               )}
+
+               <div className="space-y-4">
+                 <div>
+                   <label htmlFor="recipient-email" className="block text-sm font-medium text-gray-700 mb-2">
+                     Recipient Email (Optional)
+                   </label>
+                   <div className="relative">
+                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                       <Mail className="h-5 w-5 text-gray-400" />
+                     </div>
+                     <input
+                       type="email"
+                       id="recipient-email"
+                       value={recipientEmail}
+                       onChange={(e) => setRecipientEmail(e.target.value)}
+                       placeholder="Enter recipient email address"
+                       className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
+                     />
+                   </div>
+                 </div>
+                 
+                 <button
+                   onClick={handleSendNewsletter}
+                   disabled={isSending || isInCooldown}
+                   className={`w-full inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md transition-colors ${
+                     isInCooldown 
+                       ? 'text-gray-500 bg-gray-300 cursor-not-allowed' 
+                       : 'text-white bg-green-600 hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed'
+                   }`}
+                 >
+                   {isSending ? (
+                     <>
+                       <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                       Sending...
+                     </>
+                   ) : isInCooldown ? (
+                     <>
+                       <RefreshCw className="h-4 w-4 mr-2" />
+                       Cooldown: {formatTime(cooldownTime)}
+                     </>
+                   ) : (
+                     <>
+                       <Send className="h-4 w-4 mr-2" />
+                       Send Newsletter
+                     </>
+                   )}
+                 </button>
+                 
+                 {sendError && (
+                   <div className="bg-red-50 border border-red-200 rounded-md p-3">
+                     <div className="flex items-center">
+                       <X className="h-4 w-4 text-red-400 mr-2" />
+                       <span className="text-sm text-red-700">{sendError}</span>
+                     </div>
+                   </div>
+                 )}
+                 
+                 {sendSuccess && (
+                   <div className="bg-green-50 border border-green-200 rounded-md p-3">
+                     <div className="flex items-center">
+                       <Send className="h-4 w-4 text-green-400 mr-2" />
+                       <span className="text-sm text-green-700">{sendSuccess}</span>
+                     </div>
+                   </div>
+                 )}
+               </div>
+             </div>
+           </div>
+         </div>
+       )}
+
+       {/* Diff Viewer */}
+       {showDiffViewer && (
+         <DiffViewer
+           oldContent={diffOldContent}
+           newContent={diffNewContent}
+           oldVersion={diffVersionInfo.oldVersion}
+           newVersion={diffVersionInfo.newVersion}
+           onClose={() => setShowDiffViewer(false)}
+         />
+       )}
+     </div>
+   );
+ };
+ 
+ export default TemplatePage;
 
