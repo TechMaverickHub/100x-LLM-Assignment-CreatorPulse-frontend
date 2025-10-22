@@ -32,5 +32,16 @@ export const newsletterService = {
     
     const response = await api.post(API_ROUTES.NEWSLETTER_SEND, payload);
     return response.data;
+  },
+
+  // Schedule newsletter
+  scheduleNewsletter: async ({ draftId, startTimeIso, frequency }) => {
+    const payload = {
+      draft: draftId,
+      start_time: startTimeIso,
+      frequency,
+    };
+    const response = await api.post(API_ROUTES.NEWSLETTER_SCHEDULE, payload);
+    return response.data;
   }
 };

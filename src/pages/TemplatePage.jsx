@@ -38,6 +38,15 @@ const TemplatePage = () => {
   const [cooldownTime, setCooldownTime] = useState(0);
   const [isInCooldown, setIsInCooldown] = useState(false);
 
+  // Schedule states
+  const [showScheduleModal, setShowScheduleModal] = useState(false);
+  const [scheduleDraftId, setScheduleDraftId] = useState(null);
+  const [scheduleDateTime, setScheduleDateTime] = useState('');
+  const [scheduleFrequency, setScheduleFrequency] = useState('once');
+  const [isScheduling, setIsScheduling] = useState(false);
+  const [scheduleError, setScheduleError] = useState(null);
+  const [scheduleSuccess, setScheduleSuccess] = useState(null);
+
   // Load templates on mount
   useEffect(() => {
     loadTemplates();
@@ -259,6 +268,49 @@ const TemplatePage = () => {
     return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
   };
 
+  // Schedule functions
+  const handleOpenSchedule = (draftId) => {
+    setScheduleDraftId(draftId);
+    setScheduleDateTime('');
+    setScheduleFrequency('once');
+    setScheduleError(null);
+    setScheduleSuccess(null);
+    setShowScheduleModal(true);
+  };
+
+  const handleSchedule = async () => {
+    if (!scheduleDraftId || !scheduleDateTime || !scheduleFrequency) {
+      setScheduleError('Please select date/time and frequency');
+      return;
+    }
+
+    try {
+      setIsScheduling(true);
+      setScheduleError(null);
+      setScheduleSuccess(null);
+
+      // Convert local datetime-local to ISO (UTC)
+      const local = new Date(scheduleDateTime);
+      const startTimeIso = new Date(local.getTime() - local.getTimezoneOffset() * 60000).toISOString();
+
+      const response = await newsletterService.scheduleNewsletter({
+        draftId: scheduleDraftId,
+        startTimeIso,
+        frequency: scheduleFrequency,
+      });
+
+      if (response.status === 201) {
+        setScheduleSuccess('Newsletter scheduled successfully');
+        setShowScheduleModal(false);
+      }
+    } catch (err) {
+      setScheduleError('Failed to schedule newsletter');
+      console.error('Error scheduling newsletter:', err);
+    } finally {
+      setIsScheduling(false);
+    }
+  };
+
   return (
     <div className="flex h-[calc(100vh-4rem)] bg-gray-50">
       {/* Left Sidebar - Template List */}
@@ -440,22 +492,28 @@ const TemplatePage = () => {
                           </div>
                         </div>
 
-                         <div className="flex items-center gap-2">
-                           <button
-                             onClick={() => handlePreviewDraft(draft.pk)}
-                             className="flex-1 inline-flex items-center justify-center px-3 py-2 text-xs font-medium text-primary-700 bg-primary-50 hover:bg-primary-100 rounded-md transition-colors"
-                           >
-                             <Eye className="h-3 w-3 mr-1" />
-                             Preview
-                           </button>
-                           <button
-                             onClick={() => handleSendDraft(draft.pk)}
-                             className="flex-1 inline-flex items-center justify-center px-3 py-2 text-xs font-medium text-white bg-green-600 hover:bg-green-700 rounded-md transition-colors"
-                           >
-                             <Send className="h-3 w-3 mr-1" />
-                             Send
-                           </button>
-                         </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
+              <button
+                onClick={() => handlePreviewDraft(draft.pk)}
+                className="w-full inline-flex items-center justify-center px-3 py-2 text-xs font-medium text-primary-700 bg-primary-50 hover:bg-primary-100 rounded-md transition-colors"
+              >
+                <Eye className="h-3 w-3 mr-1" />
+                Preview
+              </button>
+              <button
+                onClick={() => handleSendDraft(draft.pk)}
+                className="w-full inline-flex items-center justify-center px-3 py-2 text-xs font-medium text-white bg-green-600 hover:bg-green-700 rounded-md transition-colors"
+              >
+                <Send className="h-3 w-3 mr-1" />
+                Send
+              </button>
+              <button
+                onClick={() => handleOpenSchedule(draft.pk)}
+                className="w-full inline-flex items-center justify-center px-5 py-3 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-md transition-colors col-span-1 sm:col-span-2 md:col-span-3"
+              >
+                Schedule
+              </button>
+            </div>
                       </div>
                     );
                   })}
@@ -607,6 +665,91 @@ const TemplatePage = () => {
            </div>
          </div>
        )}
+
+      {/* Schedule Modal */}
+      {showScheduleModal && (
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-black bg-opacity-50">
+          <div className="flex min-h-screen items-center justify-center p-4">
+            <div className="relative bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-gray-900">Schedule Newsletter</h3>
+                <button
+                  onClick={() => {
+                    setShowScheduleModal(false);
+                    setScheduleDraftId(null);
+                    setScheduleDateTime('');
+                    setScheduleFrequency('once');
+                    setScheduleError(null);
+                    setScheduleSuccess(null);
+                  }}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Start time</label>
+                  <input
+                    type="datetime-local"
+                    value={scheduleDateTime}
+                    onChange={(e) => setScheduleDateTime(e.target.value)}
+                    className="block w-full px-3 py-2 border border-gray-300 rounded-md leading-5 bg-white focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Frequency</label>
+                  <select
+                    value={scheduleFrequency}
+                    onChange={(e) => setScheduleFrequency(e.target.value)}
+                    className="block w-full px-3 py-2 border border-gray-300 rounded-md leading-5 bg-white focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
+                  >
+                    <option value="once">Once</option>
+                    <option value="daily">Daily</option>
+                    <option value="weekly">Weekly</option>
+                    <option value="monthly">Monthly</option>
+                  </select>
+                </div>
+
+                <button
+                  onClick={handleSchedule}
+                  disabled={isScheduling || !scheduleDateTime}
+                  className="w-full inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md transition-colors text-white bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isScheduling ? (
+                    <>
+                      <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                      Scheduling...
+                    </>
+                  ) : (
+                    <>Schedule</>
+                  )}
+                </button>
+
+                {scheduleError && (
+                  <div className="bg-red-50 border border-red-200 rounded-md p-3">
+                    <div className="flex items-center">
+                      <X className="h-4 w-4 text-red-400 mr-2" />
+                      <span className="text-sm text-red-700">{scheduleError}</span>
+                    </div>
+                  </div>
+                )}
+
+                {scheduleSuccess && (
+                  <div className="bg-green-50 border border-green-200 rounded-md p-3">
+                    <div className="flex items-center">
+                      <Send className="h-4 w-4 text-green-400 mr-2" />
+                      <span className="text-sm text-green-700">{scheduleSuccess}</span>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
        {/* Diff Viewer */}
        {showDiffViewer && (

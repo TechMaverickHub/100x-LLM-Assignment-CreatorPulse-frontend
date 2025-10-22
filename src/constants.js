@@ -16,6 +16,7 @@ export const API_ROUTES = {
   NEWSLETTER_HISTORY: "newsletter/history/",
   NEWSLETTER_GENERATE: "newsletter/generate",
   NEWSLETTER_SEND: "newsletter/send-newsletter",
+  NEWSLETTER_SCHEDULE: "newsletter/schedule",
   
   // Mail Routes
   MAIL_USER_LIST: "mail/user-list-filter",
