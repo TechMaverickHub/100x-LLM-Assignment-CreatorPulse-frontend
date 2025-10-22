@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { X, ChevronDown, ChevronUp } from 'lucide-react';
 import * as Diff from 'diff';
 
-const DiffViewer = ({ oldContent, newContent, onClose }) => {
+const DiffViewer = ({ oldContent, newContent, onClose, oldVersion, newVersion }) => {
   const [diff, setDiff] = useState([]);
   const [expandedSections, setExpandedSections] = useState(new Set());
 
@@ -39,7 +39,14 @@ const DiffViewer = ({ oldContent, newContent, onClose }) => {
         <div className="relative bg-white rounded-lg shadow-xl max-w-7xl w-full max-h-[90vh] flex flex-col">
           {/* Header */}
           <div className="flex items-center justify-between p-4 border-b border-gray-200">
-            <h3 className="text-lg font-semibold text-gray-900">Code Diff</h3>
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900">Code Diff</h3>
+              {oldVersion && newVersion && (
+                <p className="text-sm text-gray-600 mt-1">
+                  Comparing Version {oldVersion} → Version {newVersion}
+                </p>
+              )}
+            </div>
             <button
               onClick={onClose}
               className="inline-flex items-center justify-center w-8 h-8 text-gray-400 hover:text-gray-600 rounded-md hover:bg-gray-100"

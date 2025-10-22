@@ -28,10 +28,12 @@ const NewsletterPage = () => {
   const [showDraftList, setShowDraftList] = useState(false);
   const [draftList, setDraftList] = useState([]);
   const [loadingDrafts, setLoadingDrafts] = useState(false);
-  const [selectedDraftForDiff, setSelectedDraftForDiff] = useState(null);
+  const [selectedDraft1, setSelectedDraft1] = useState(null);
+  const [selectedDraft2, setSelectedDraft2] = useState(null);
   const [showDiffViewer, setShowDiffViewer] = useState(false);
   const [diffOldContent, setDiffOldContent] = useState('');
   const [diffNewContent, setDiffNewContent] = useState('');
+  const [diffVersionInfo, setDiffVersionInfo] = useState({ oldVersion: null, newVersion: null });
   
   const { user } = useSelector(state => state.auth);
 
@@ -235,20 +237,61 @@ const NewsletterPage = () => {
     }
   };
 
-  const handleCompareDrafts = async (draftId) => {
+  const handleSelectDraftForComparison = (draft) => {
+    if (!selectedDraft1) {
+      setSelectedDraft1(draft);
+    } else if (!selectedDraft2) {
+      if (draft.pk === selectedDraft1.pk) {
+        setDraftError('Please select two different drafts to compare');
+        setTimeout(() => setDraftError(null), 3000);
+        return;
+      }
+      setSelectedDraft2(draft);
+    } else {
+      // Reset and start over
+      setSelectedDraft1(draft);
+      setSelectedDraft2(null);
+    }
+  };
+
+  const handleCompareDrafts = async () => {
+    if (!selectedDraft1 || !selectedDraft2) {
+      setDraftError('Please select two drafts to compare');
+      return;
+    }
+
     try {
-      const response = await draftService.getDraft(draftId);
+      const [response1, response2] = await Promise.all([
+        draftService.getDraft(selectedDraft1.pk),
+        draftService.getDraft(selectedDraft2.pk)
+      ]);
       
-      if (response.results && response.results.html_content) {
-        setDiffOldContent(response.results.html_content);
-        setDiffNewContent(editedHtml);
+      // Determine which is older and which is newer
+      const older = selectedDraft1.version < selectedDraft2.version ? response1.results : response2.results;
+      const newer = selectedDraft1.version < selectedDraft2.version ? response2.results : response1.results;
+      const olderVersion = selectedDraft1.version < selectedDraft2.version ? selectedDraft1.version : selectedDraft2.version;
+      const newerVersion = selectedDraft1.version < selectedDraft2.version ? selectedDraft2.version : selectedDraft1.version;
+      
+      if (older && newer && older.html_content && newer.html_content) {
+        setDiffOldContent(older.html_content);
+        setDiffNewContent(newer.html_content);
+        setDiffVersionInfo({ oldVersion: olderVersion, newVersion: newerVersion });
         setShowDiffViewer(true);
         setShowDraftList(false);
+        
+        // Reset selections
+        setSelectedDraft1(null);
+        setSelectedDraft2(null);
       }
     } catch (error) {
-      setDraftError('Failed to load draft for comparison');
-      console.error('Error loading draft for comparison:', error);
+      setDraftError('Failed to load drafts for comparison');
+      console.error('Error loading drafts for comparison:', error);
     }
+  };
+
+  const handleClearSelection = () => {
+    setSelectedDraft1(null);
+    setSelectedDraft2(null);
   };
 
   return (
@@ -555,46 +598,113 @@ const NewsletterPage = () => {
           <div className="flex min-h-screen items-center justify-center p-4">
             <div className="relative bg-white rounded-lg shadow-xl max-w-2xl w-full p-6">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-gray-900">Draft History</h3>
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900">Draft History</h3>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Select two drafts to compare, or load a single draft
+                  </p>
+                </div>
                 <button
-                  onClick={() => setShowDraftList(false)}
+                  onClick={() => {
+                    setShowDraftList(false);
+                    setSelectedDraft1(null);
+                    setSelectedDraft2(null);
+                  }}
                   className="text-gray-400 hover:text-gray-600"
                 >
                   <X className="h-5 w-5" />
                 </button>
               </div>
               
+              {/* Selection Info and Compare Button */}
+              {(selectedDraft1 || selectedDraft2) && (
+                <div className="mb-4 p-3 bg-purple-50 border border-purple-200 rounded-lg">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2 text-sm">
+                      <span className="font-medium text-purple-900">Selected:</span>
+                      {selectedDraft1 && (
+                        <span className="px-2 py-0.5 bg-purple-100 text-purple-700 rounded">
+                          v{selectedDraft1.version}
+                        </span>
+                      )}
+                      {selectedDraft2 && (
+                        <>
+                          <span className="text-purple-600">vs</span>
+                          <span className="px-2 py-0.5 bg-purple-100 text-purple-700 rounded">
+                            v{selectedDraft2.version}
+                          </span>
+                        </>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {selectedDraft1 && selectedDraft2 && (
+                        <button
+                          onClick={handleCompareDrafts}
+                          className="inline-flex items-center px-3 py-1.5 text-xs font-medium text-white bg-purple-600 hover:bg-purple-700 rounded-md transition-colors"
+                        >
+                          <GitCompare className="h-3 w-3 mr-1" />
+                          Compare Now
+                        </button>
+                      )}
+                      <button
+                        onClick={handleClearSelection}
+                        className="inline-flex items-center px-3 py-1.5 text-xs font-medium text-purple-700 bg-white border border-purple-300 hover:bg-purple-50 rounded-md transition-colors"
+                      >
+                        Clear
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+              
               {draftList.length === 0 ? (
                 <p className="text-center text-gray-500 py-8">No drafts found</p>
               ) : (
                 <div className="space-y-2 max-h-96 overflow-y-auto">
-                  {draftList.map((draft) => (
-                    <div
-                      key={draft.pk}
-                      className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
-                    >
-                      <div className="flex items-center gap-3">
-                        <span className="text-sm font-medium text-gray-900">
-                          Version {draft.version}
-                        </span>
+                  {draftList.map((draft) => {
+                    const isSelected = 
+                      (selectedDraft1 && selectedDraft1.pk === draft.pk) ||
+                      (selectedDraft2 && selectedDraft2.pk === draft.pk);
+                    
+                    return (
+                      <div
+                        key={draft.pk}
+                        className={`flex items-center justify-between p-4 border-2 rounded-lg transition-all ${
+                          isSelected
+                            ? 'border-purple-500 bg-purple-50'
+                            : 'border-gray-200 hover:bg-gray-50'
+                        }`}
+                      >
+                        <div className="flex items-center gap-3">
+                          <button
+                            onClick={() => handleSelectDraftForComparison(draft)}
+                            className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${
+                              isSelected
+                                ? 'border-purple-500 bg-purple-500'
+                                : 'border-gray-300 hover:border-purple-400'
+                            }`}
+                          >
+                            {isSelected && (
+                              <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                              </svg>
+                            )}
+                          </button>
+                          <span className={`text-sm font-medium ${isSelected ? 'text-purple-900' : 'text-gray-900'}`}>
+                            Version {draft.version}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => handleLoadDraft(draft.pk)}
+                            className="inline-flex items-center px-3 py-1.5 text-xs font-medium text-primary-700 bg-primary-50 hover:bg-primary-100 rounded-md transition-colors"
+                          >
+                            Load
+                          </button>
+                        </div>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <button
-                          onClick={() => handleCompareDrafts(draft.pk)}
-                          className="inline-flex items-center px-3 py-1.5 text-xs font-medium text-purple-700 bg-purple-50 hover:bg-purple-100 rounded-md transition-colors"
-                        >
-                          <GitCompare className="h-3 w-3 mr-1" />
-                          Compare
-                        </button>
-                        <button
-                          onClick={() => handleLoadDraft(draft.pk)}
-                          className="inline-flex items-center px-3 py-1.5 text-xs font-medium text-primary-700 bg-primary-50 hover:bg-primary-100 rounded-md transition-colors"
-                        >
-                          Load
-                        </button>
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </div>
@@ -607,6 +717,8 @@ const NewsletterPage = () => {
         <DiffViewer
           oldContent={diffOldContent}
           newContent={diffNewContent}
+          oldVersion={diffVersionInfo.oldVersion}
+          newVersion={diffVersionInfo.newVersion}
           onClose={() => setShowDiffViewer(false)}
         />
       )}
