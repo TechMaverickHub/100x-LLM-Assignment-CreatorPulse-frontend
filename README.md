@@ -1,103 +1,152 @@
-# AI Newsletter Frontend
+# 🎨 Creator Pulse Frontend – AI-Powered Newsletter Dashboard (LLM Assignment)
 
-A React-based web application for managing AI newsletters with user authentication, topic selection, and admin functionality.
+Creator Pulse Frontend is a **React-based user interface** for the *Creator Pulse AI Newsletter System*.  
+It allows users and superadmins to manage topics, sources, newsletters, and templates with an elegant, responsive design.
 
-## Features
+> 🧩 Built as part of the **100x GenAI Cohort – LLM Engineering Module**
 
-- **User Authentication**: JWT-based login/register system
-- **Topic Selection**: Users can choose their AI interests
-- **Newsletter Viewing**: Display personalized newsletters
-- **Admin Panel**: Manage content sources (superadmin only)
-- **Responsive Design**: Mobile-friendly interface with Tailwind CSS
+---
 
-## Tech Stack
+## 🧭 Overview
 
-- **React 18** with Vite
-- **Redux Toolkit** for state management
-- **React Router** for navigation
-- **Tailwind CSS** for styling
-- **Axios** for API calls
-- **Lucide React** for icons
+The frontend provides a seamless interface that connects to the **Django REST API backend** of Creator Pulse.  
+It helps users personalize their newsletter experience while superadmins manage analytics and content sources.
 
-## Getting Started
+---
 
-### Prerequisites
+## 📌 Core Features
 
-- Node.js (v16 or higher)
-- Yarn package manager
-- Backend API running on `http://localhost:8000`
+### 👤 **User Dashboard**
+- Displays **credits remaining**, **topics selected**, **newsletter count**, and **reading streak**
+- Quick view of **latest newsletters** and personalized stats
 
-### Installation
+### 🧠 **Topic Management**
+- Browse and select preferred topics for AI-curated newsletters
+- Instantly update preferences synced with backend APIs
 
-1. Install dependencies:
+### 📰 **Sources**
+- View all content sources related to selected topics
+- Filter by name, URL, or source type
+
+### ✍️ **Style Sample Upload**
+- Upload short writing snippets to influence newsletter voice and tone
+
+### 💌 **Newsletter Generator**
+- Generate AI newsletters with live HTML preview
+- Send newsletters via integrated backend (Resend API)
+- Supports saving newsletters as templates and creating multiple drafts
+- Inline diff comparison between two drafts
+
+### 🧾 **Templates and Drafts**
+- View and manage all saved templates
+- Access all drafts for a selected template
+- Send or schedule newsletters with chosen frequency
+
+### 📅 **Newsletter History**
+- Displays sent and scheduled newsletters with timestamps and statuses
+
+### 🧑‍💼 **Superadmin Panel**
+- Access analytics: user growth, newsletter trends, and source metrics
+- Manage users and sources directly from the admin dashboard
+
+---
+
+## ⚙️ Tech Stack
+
+| Tool / Library | Description |
+|----------------|-------------|
+| **React 19** | Frontend library |
+| **Redux Toolkit** | State management |
+| **React Router DOM** | Client-side routing |
+| **Axios** | API communication with Django backend |
+| **TailwindCSS** | Styling and layout |
+| **Lucide React** | Icon components |
+| **Recharts** | Data visualization |
+| **Vite** | Fast build tool and development server |
+
+---
+
+## 🚀 Getting Started
+
+### 🔁 1. Clone the Repository
+
+```bash
+git clone https://github.com/TechMaverickHub/100x-LLM-Assignment-CreatorPulse-frontend.git
+cd 100x-LLM-Assignment-CreatorPulse-frontend
+```
+
+---
+
+### 📦 2. Install Dependencies
+
 ```bash
 yarn install
 ```
 
-2. Create environment file:
-```bash
-# Create .env file with:
-VITE_API_BASE_URL=http://localhost:8000/api
-```
+---
 
-3. Start development server:
+### 🧪 3. Run Development Server
+
 ```bash
 yarn dev
 ```
 
-The application will be available at `http://localhost:3000`.
+Access the app at:  
+👉 `http://localhost:5173/`
 
-### Build for Production
+---
+
+### 🏗️ 4. Build for Production
 
 ```bash
 yarn build
 ```
 
-## Project Structure
+Preview the production build:
 
-```
-src/
-├── components/          # Reusable components
-├── pages/             # Page components
-├── services/          # API services
-├── store/             # Redux store and slices
-├── hooks/             # Custom hooks
-├── App.jsx            # Main app component
-└── main.jsx           # Entry point
+```bash
+yarn preview
 ```
 
-## API Integration
+---
 
-The app expects a Django REST API with the following endpoints:
+## 🔌 Backend Integration
 
-- `POST /user/login/` - User login
-- `POST /auth/register/` - User registration
-- `GET /auth/user/` - Get current user
-- `GET /topics/` - Get available topics
-- `GET /user/topics/` - Get user's selected topics
-- `POST /user/topics/` - Update user topics
-- `GET /newsletter/latest/` - Get latest newsletter
-- `GET /admin/sources/` - Manage sources (admin only)
+This frontend connects to the **Django REST API backend**:  
+👉 [Creator Pulse Backend Repo](https://github.com/TechMaverickHub/100x-LLM-Assignment-CreatorPulse)
 
-## User Roles
+- JWT-based Authentication  
+- Newsletter Generation APIs  
+- Template Management  
+- Analytics and Dashboard APIs  
 
-- **User**: Can select topics and view newsletters
-- **Superadmin**: Can manage content sources and system settings
+---
 
-## Development
+## 🎥 Demo Recording
 
-The project uses:
-- **Vite** for fast development and building
-- **ESLint** for code linting
-- **Prettier** for code formatting
-- **Tailwind CSS** for utility-first styling
+Loom Demo: [https://www.loom.com/share/c00678288d824f999cf4f1507232346f](https://www.loom.com/share/c00678288d824f999cf4f1507232346f)
 
-## Deployment
+---
 
-The app can be deployed to any static hosting service like:
-- Netlify
-- Vercel
-- GitHub Pages
-- AWS S3 + CloudFront
+## 🧠 Assignment Context
 
-Make sure to set the `VITE_API_BASE_URL` environment variable to your production API URL.
+Developed as part of the **100x GenAI Cohort – LLM Engineering Module** to demonstrate the integration of:  
+- AI personalization workflows  
+- REST API-based newsletter automation  
+- Modern UI/UX practices with Tailwind and React  
+
+---
+
+## 🚧 Future Enhancements
+
+- 🌙 Dark mode support  
+- 📈 More detailed analytics charts  
+- 🧩 Improved WYSIWYG editor for newsletter drafts  
+- 🗓️ Enhanced scheduling and reminder UI  
+
+---
+
+## 🧾 License
+
+This project is part of an educational module and is not licensed for commercial use.  
+For learning purposes only under the **100x GenAI Cohort**.

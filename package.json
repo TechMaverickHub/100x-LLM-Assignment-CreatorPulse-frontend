@@ -1,5 +1,6 @@
 {
-  "name": "100x-LLM-Assignment-CreatorPulse-frontend",
+  "name": "creator-pulse-frontend",
+  "description": "Creator Pulse - Your daily feed curator and newsletter drafting tool",
   "version": "1.0.0",
   "type": "module",
   "scripts": {
@@ -13,12 +14,14 @@
     "@tailwindcss/forms": "^0.5.10",
     "autoprefixer": "^10.4.21",
     "axios": "^1.12.2",
+    "diff": "^8.0.2",
     "lucide-react": "^0.545.0",
     "postcss": "^8.5.6",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "react-redux": "^9.2.0",
-    "react-router-dom": "^7.9.4"
+    "react-router-dom": "^7.9.4",
+    "recharts": "^3.3.0"
   },
   "devDependencies": {
     "@vitejs/plugin-react": "^5.0.4",

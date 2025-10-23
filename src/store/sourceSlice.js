@@ -4,12 +4,24 @@ import { sourceService } from '../services/sourceService.js';
 // Async thunks
 export const fetchSources = createAsyncThunk(
   'sources/fetchSources',
-  async (_, { rejectWithValue }) => {
+  async (params = {}, { rejectWithValue }) => {
     try {
-      const response = await sourceService.getSources();
+      const response = await sourceService.getSources(params);
       return response;
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || 'Failed to fetch sources');
+    }
+  }
+);
+
+export const getSourceById = createAsyncThunk(
+  'sources/getSourceById',
+  async (id, { rejectWithValue }) => {
+    try {
+      const response = await sourceService.getSourceById(id);
+      return response;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to fetch source details');
     }
   }
 );
@@ -50,8 +62,45 @@ export const deleteSource = createAsyncThunk(
   }
 );
 
+export const activateSource = createAsyncThunk(
+  'sources/activateSource',
+  async (id, { rejectWithValue }) => {
+    try {
+      const response = await sourceService.activateSource(id);
+      return { id, response };
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to activate source');
+    }
+  }
+);
+
+export const deactivateSource = createAsyncThunk(
+  'sources/deactivateSource',
+  async (id, { rejectWithValue }) => {
+    try {
+      const response = await sourceService.deactivateSource(id);
+      return { id, response };
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to deactivate source');
+    }
+  }
+);
+
 const initialState = {
   sources: [],
+  pagination: {
+    count: 0,
+    next: null,
+    previous: null,
+    currentPage: 1
+  },
+  filters: {
+    name: '',
+    url: '',
+    sourceType: '',
+    topic: '',
+    isActive: ''
+  },
   loading: false,
   error: null,
   editingSource: null
@@ -69,6 +118,21 @@ const sourceSlice = createSlice({
     },
     clearError: (state) => {
       state.error = null;
+    },
+    setFilters: (state, action) => {
+      state.filters = { ...state.filters, ...action.payload };
+    },
+    clearFilters: (state) => {
+      state.filters = {
+        name: '',
+        url: '',
+        sourceType: '',
+        topic: '',
+        isActive: ''
+      };
+    },
+    setCurrentPage: (state, action) => {
+      state.pagination.currentPage = action.payload;
     }
   },
   extraReducers: (builder) => {
@@ -80,10 +144,30 @@ const sourceSlice = createSlice({
       })
       .addCase(fetchSources.fulfilled, (state, action) => {
         state.loading = false;
-        state.sources = action.payload;
+        state.sources = action.payload.results || [];
+        state.pagination = {
+          count: action.payload.count || 0,
+          next: action.payload.next,
+          previous: action.payload.previous,
+          currentPage: state.pagination.currentPage
+        };
         state.error = null;
       })
       .addCase(fetchSources.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      // Get source by ID
+      .addCase(getSourceById.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(getSourceById.fulfilled, (state, action) => {
+        state.loading = false;
+        state.editingSource = action.payload.results;
+        state.error = null;
+      })
+      .addCase(getSourceById.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       })
@@ -94,7 +178,7 @@ const sourceSlice = createSlice({
       })
       .addCase(createSource.fulfilled, (state, action) => {
         state.loading = false;
-        state.sources.push(action.payload);
+        // Refresh the sources list instead of just adding one
         state.error = null;
       })
       .addCase(createSource.rejected, (state, action) => {
@@ -131,9 +215,37 @@ const sourceSlice = createSlice({
       .addCase(deleteSource.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
+      })
+      // Activate source
+      .addCase(activateSource.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(activateSource.fulfilled, (state, action) => {
+        state.loading = false;
+        // Refresh the sources list instead of updating individual source
+        state.error = null;
+      })
+      .addCase(activateSource.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      // Deactivate source
+      .addCase(deactivateSource.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(deactivateSource.fulfilled, (state, action) => {
+        state.loading = false;
+        // Refresh the sources list instead of updating individual source
+        state.error = null;
+      })
+      .addCase(deactivateSource.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
       });
   }
 });
 
-export const { setEditingSource, clearEditingSource, clearError } = sourceSlice.actions;
+export const { setEditingSource, clearEditingSource, clearError, setFilters, clearFilters, setCurrentPage } = sourceSlice.actions;
 export default sourceSlice.reducer;

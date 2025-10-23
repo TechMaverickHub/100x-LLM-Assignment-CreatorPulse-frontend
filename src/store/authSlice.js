@@ -1,5 +1,6 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { authService } from '../services/authService.js';
+import { handleApiError } from '../utils/errorHandler.js';
 
 // Async thunks
 export const loginUser = createAsyncThunk(
@@ -9,7 +10,8 @@ export const loginUser = createAsyncThunk(
       const response = await authService.login(credentials);
       return response;
     } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'Login failed');
+      const errorMessage = handleApiError(error);
+      return rejectWithValue(errorMessage);
     }
   }
 );
@@ -21,7 +23,21 @@ export const registerUser = createAsyncThunk(
       const response = await authService.register(userData);
       return response;
     } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'Registration failed');
+      const errorMessage = handleApiError(error);
+      return rejectWithValue(errorMessage);
+    }
+  }
+);
+
+export const signupUser = createAsyncThunk(
+  'auth/signup',
+  async (userData, { rejectWithValue }) => {
+    try {
+      const response = await authService.signup(userData);
+      return response;
+    } catch (error) {
+      const errorMessage = handleApiError(error);
+      return rejectWithValue(errorMessage);
     }
   }
 );
@@ -33,7 +49,8 @@ export const getCurrentUser = createAsyncThunk(
       const response = await authService.getCurrentUser();
       return response;
     } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to get user');
+      const errorMessage = handleApiError(error);
+      return rejectWithValue(errorMessage);
     }
   }
 );
@@ -56,7 +73,6 @@ const authSlice = createSlice({
       state.isAuthenticated = false;
       state.error = null;
       authService.logout();
-      localStorage.removeItem('user_data');
     },
     clearError: (state) => {
       state.error = null;
@@ -70,14 +86,13 @@ const authSlice = createSlice({
         state.error = null;
       })
       .addCase(loginUser.fulfilled, (state, action) => {
+        console.log('AuthSlice - Login fulfilled:', action.payload);
         state.loading = false;
         state.user = action.payload.user;
         state.token = action.payload.access_token;
         state.isAuthenticated = true;
         state.error = null;
-        
-        // Store user data in localStorage for persistence
-        localStorage.setItem('user_data', JSON.stringify(action.payload.user));
+        console.log('AuthSlice - State updated, isAuthenticated:', state.isAuthenticated);
       })
       .addCase(loginUser.rejected, (state, action) => {
         state.loading = false;
@@ -93,6 +108,21 @@ const authSlice = createSlice({
         state.error = null;
       })
       .addCase(registerUser.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      // Signup
+      .addCase(signupUser.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(signupUser.fulfilled, (state, action) => {
+        state.loading = false;
+        state.error = null;
+        // Store the created user data for potential immediate login
+        state.user = action.payload.results;
+      })
+      .addCase(signupUser.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       })

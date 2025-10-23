@@ -1,0 +1,165 @@
+// API Configuration Constants
+export const API_BASE_URL = "http://localhost:8000/api";
+
+// API Routes
+export const API_ROUTES = {
+  // User Authentication Routes
+  USER_LOGIN: "user/login/",
+  USER_REGISTER: "user/register/",
+  USER_SIGNUP: "user/user-sign-up/",
+  USER_REFRESH: "user/refresh/",
+  USER_TOPICS: "user/topics/",
+  
+  // Newsletter Routes
+  NEWSLETTER_LATEST: "newsletter/latest/",
+  NEWSLETTER_BY_DATE: "newsletter/", // Will be used with date parameter
+  NEWSLETTER_HISTORY: "newsletter/history/",
+  NEWSLETTER_GENERATE: "newsletter/generate",
+  NEWSLETTER_SEND: "newsletter/send-newsletter",
+  NEWSLETTER_SCHEDULE: "newsletter/schedule",
+  
+  // Mail Routes
+  MAIL_USER_LIST: "mail/user-list-filter",
+  MAIL_COUNT: "mail/count-newsletter-received",
+  MAIL_LATEST: "mail/latest-newsletter",
+  
+  // Topics Routes
+  TOPICS_LIST: "topic/list",
+  USER_TOPICS_LIST: "topic/user-topic-list",
+  USER_TOPICS_UPDATE: "topic/user-topic-update",
+  
+  // Admin Routes
+  ADMIN_SOURCES: "admin/sources/",
+  SOURCE_CREATE: "source/",
+  SOURCE_LIST_FILTER: "source/list-filter",
+  SOURCE_DETAIL: "source/", // Will be used with ID parameter like source/11
+  SOURCE_UPDATE: "source/", // Will be used with ID parameter  
+  SOURCE_DELETE: "source/", // Will be used with ID parameter
+  SOURCE_ACTIVATE: "source/", // Will be used with ID parameter like source/12/activate
+  
+  // User Source Routes
+  USER_SOURCES: "source/user-source-list-filter",
+  
+  
+  // User Management Routes
+  USER_LIST_FILTER: "user/list-filter",
+  USER_DETAIL: "user/", // Will be used with ID parameter like user/7
+  USER_ACTIVATE: "user/", // Will be used with ID parameter like user/7/activate
+  
+  // User Style Sample Routes
+  USER_STYLE_SAMPLE: "sample/",
+  USER_STYLE_SAMPLE_LIST: "sample/list-filter",
+  USER_STYLE_SAMPLE_DETAIL: "sample/", // Will be used with ID parameter like sample/5
+  
+  // Credit Routes
+  CREDIT_INFO: "credit/",
+  
+  // Analytics Routes
+  ANALYTICS_DAILY_REGISTRATIONS: "analytics/users/daily-registrations/",
+  ANALYTICS_ACTIVE_USERS: "analytics/users/active/",
+  ANALYTICS_USERS_PER_TOPIC: "analytics/users/topics/",
+  ANALYTICS_MANAGEMENT_COUNT: "analytics/count",
+  
+  // Email/Newsletter Analytics Routes
+  ANALYTICS_EMAILS_DAILY_COUNT: "analytics/emails/daily-count/",
+  ANALYTICS_EMAILS_STATUS_BREAKDOWN: "analytics/emails/status-breakdown/",
+  
+  // Topic & Source Analytics Routes
+  ANALYTICS_SOURCES_BY_TOPIC: "analytics/sources/by-topic/",
+  ANALYTICS_TOPICS_TOP: "analytics/topics/top/",
+};
+
+// Role Dictionary - Maps role IDs to role names
+export const ROLE_DICTIONARY = {
+  1: 'superadmin',
+  2: 'user'
+};
+
+// Helper function to get role name from role ID
+export const getRoleName = (roleId) => {
+  return ROLE_DICTIONARY[roleId] || 'user';
+};
+
+// Helper function to check if user is admin
+export const isAdmin = (roleId) => {
+  // Handle both string and number inputs
+  const numericRoleId = typeof roleId === 'string' ? parseInt(roleId, 10) : roleId;
+  return numericRoleId === 1; // superadmin
+};
+
+// Source Type Constants
+export const SOURCE_TYPE_CONSTANTS = {
+  TWITTER: 1,
+  YOUTUBE: 2,
+  RSS: 3,
+  BLOG: 4,
+  API: 5,
+  REDDIT: 6,
+  ARXIV: 7,
+};
+
+// Topic Constants
+export const TOPIC_CONSTANTS = {
+  AI: 1,
+  BLOCKCHAIN: 2,
+  CYBERSECURITY: 3,
+  IOT: 4,
+};
+
+// Source Type Labels
+export const SOURCE_TYPE_LABELS = {
+  [SOURCE_TYPE_CONSTANTS.TWITTER]: 'Twitter',
+  [SOURCE_TYPE_CONSTANTS.YOUTUBE]: 'YouTube',
+  [SOURCE_TYPE_CONSTANTS.RSS]: 'RSS',
+  [SOURCE_TYPE_CONSTANTS.BLOG]: 'Blog',
+  [SOURCE_TYPE_CONSTANTS.API]: 'API',
+  [SOURCE_TYPE_CONSTANTS.REDDIT]: 'Reddit',
+  [SOURCE_TYPE_CONSTANTS.ARXIV]: 'ArXiv',
+};
+
+// Topic Labels
+export const TOPIC_LABELS = {
+  [TOPIC_CONSTANTS.AI]: 'AI',
+  [TOPIC_CONSTANTS.BLOCKCHAIN]: 'Blockchain',
+  [TOPIC_CONSTANTS.CYBERSECURITY]: 'Cybersecurity',
+  [TOPIC_CONSTANTS.IOT]: 'IoT',
+};
+
+// Helper function to build full API URLs
+export const buildApiUrl = (route) => {
+  return `${API_BASE_URL}/${route}`;
+};
+
+// Pre-built full URLs for commonly used endpoints
+export const FULL_API_URLS = {
+  USER_LOGIN: buildApiUrl(API_ROUTES.USER_LOGIN),
+  USER_REGISTER: buildApiUrl(API_ROUTES.USER_REGISTER),
+  USER_REFRESH: buildApiUrl(API_ROUTES.USER_REFRESH),
+  USER_TOPICS: buildApiUrl(API_ROUTES.USER_TOPICS),
+  NEWSLETTER_LATEST: buildApiUrl(API_ROUTES.NEWSLETTER_LATEST),
+  NEWSLETTER_HISTORY: buildApiUrl(API_ROUTES.NEWSLETTER_HISTORY),
+  MAIL_USER_LIST: buildApiUrl(API_ROUTES.MAIL_USER_LIST),
+  MAIL_COUNT: buildApiUrl(API_ROUTES.MAIL_COUNT),
+  MAIL_LATEST: buildApiUrl(API_ROUTES.MAIL_LATEST),
+  TOPICS_LIST: buildApiUrl(API_ROUTES.TOPICS_LIST),
+  USER_TOPICS_LIST: buildApiUrl(API_ROUTES.USER_TOPICS_LIST),
+  USER_TOPICS_UPDATE: buildApiUrl(API_ROUTES.USER_TOPICS_UPDATE),
+  ADMIN_SOURCES: buildApiUrl(API_ROUTES.ADMIN_SOURCES),
+  SOURCE_CREATE: buildApiUrl(API_ROUTES.SOURCE_CREATE),
+  SOURCE_LIST_FILTER: buildApiUrl(API_ROUTES.SOURCE_LIST_FILTER),
+  USER_SOURCES: buildApiUrl(API_ROUTES.USER_SOURCES),
+  MANAGEMENT_COUNT: buildApiUrl(API_ROUTES.ANALYTICS_MANAGEMENT_COUNT),
+  USER_LIST_FILTER: buildApiUrl(API_ROUTES.USER_LIST_FILTER),
+  USER_DETAIL: buildApiUrl(API_ROUTES.USER_DETAIL),
+  USER_ACTIVATE: buildApiUrl(API_ROUTES.USER_ACTIVATE),
+  USER_STYLE_SAMPLE: buildApiUrl(API_ROUTES.USER_STYLE_SAMPLE),
+  USER_STYLE_SAMPLE_LIST: buildApiUrl(API_ROUTES.USER_STYLE_SAMPLE_LIST),
+  USER_STYLE_SAMPLE_DETAIL: buildApiUrl(API_ROUTES.USER_STYLE_SAMPLE_DETAIL),
+  ANALYTICS_DAILY_REGISTRATIONS: buildApiUrl(API_ROUTES.ANALYTICS_DAILY_REGISTRATIONS),
+  ANALYTICS_ACTIVE_USERS: buildApiUrl(API_ROUTES.ANALYTICS_ACTIVE_USERS),
+  ANALYTICS_USERS_PER_TOPIC: buildApiUrl(API_ROUTES.ANALYTICS_USERS_PER_TOPIC),
+  ANALYTICS_EMAILS_DAILY_COUNT: buildApiUrl(API_ROUTES.ANALYTICS_EMAILS_DAILY_COUNT),
+  ANALYTICS_EMAILS_STATUS_BREAKDOWN: buildApiUrl(API_ROUTES.ANALYTICS_EMAILS_STATUS_BREAKDOWN),
+  ANALYTICS_SOURCES_BY_TOPIC: buildApiUrl(API_ROUTES.ANALYTICS_SOURCES_BY_TOPIC),
+  ANALYTICS_TOPICS_TOP: buildApiUrl(API_ROUTES.ANALYTICS_TOPICS_TOP),
+};

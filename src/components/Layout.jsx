@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { useAuth } from '../hooks/useAuth.js';
+import { useSelector, useDispatch } from 'react-redux';
+import { logout } from '../store/authSlice.js';
+import { getRoleName, isAdmin } from '../constants.js';
 import { 
   Home, 
   BookOpen, 
@@ -9,29 +11,56 @@ import {
   LogOut, 
   Menu, 
   X,
-  User
+  User,
+  Globe,
+  Users,
+  BarChart3,
+  FileText,
+  FolderOpen,
+  CreditCard
 } from 'lucide-react';
 
 const Layout = ({ children }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const { user, logout, isAuthenticated } = useAuth();
+  const dispatch = useDispatch();
+  const { user, isAuthenticated } = useSelector(state => state.auth);
   const location = useLocation();
   const navigate = useNavigate();
 
+
   const handleLogout = () => {
-    logout();
+    dispatch(logout());
     navigate('/login');
   };
 
-  const navigation = [
-    { name: 'Dashboard', href: '/dashboard', icon: Home },
-    { name: 'Topics', href: '/topics', icon: BookOpen },
-    { name: 'Newsletter', href: '/newsletter', icon: Newspaper },
-  ];
+  // Get navigation based on user role
+  const getNavigation = () => {
+    // Get role_id from Redux store (check both user.role_id and user.role.pk) or localStorage as fallback
+    const roleId = user?.role_id || user?.role?.pk || localStorage.getItem('user_role_id');
+    
+    
+    if (isAdmin(roleId)) {
+      return [
+        { name: 'Admin Dashboard', href: '/admin/dashboard', icon: Home },
+        { name: 'Analytics', href: '/admin/analytics', icon: BarChart3 },
+        { name: 'Manage Sources', href: '/admin/sources', icon: Settings },
+        { name: 'Manage Users', href: '/admin/users', icon: Users },
+      ];
+    } else {
+      return [
+        { name: 'Dashboard', href: '/dashboard', icon: Home },
+        { name: 'Topics', href: '/topics', icon: BookOpen },
+        { name: 'Sources', href: '/sources', icon: Globe },
+        { name: 'User Style Sample', href: '/user-style-sample', icon: FileText },
+        { name: 'Newsletter', href: '/newsletter', icon: Newspaper },
+        { name: 'Templates', href: '/templates', icon: FolderOpen },
+        { name: 'Newsletter History', href: '/newsletter/history', icon: Newspaper },
+        { name: 'Subscription', href: '/subscription', icon: CreditCard },
+      ];
+    }
+  };
 
-  const adminNavigation = [
-    { name: 'Sources', href: '/admin/sources', icon: Settings },
-  ];
+  const navigation = getNavigation();
 
   if (!isAuthenticated) {
     return children;
@@ -54,27 +83,10 @@ const Layout = ({ children }) => {
           </div>
           <div className="flex-1 h-0 pt-5 pb-4 overflow-y-auto">
             <div className="flex-shrink-0 flex items-center px-4">
-              <h1 className="text-xl font-bold text-primary-800">AI Newsletter</h1>
+              <h1 className="text-xl font-bold text-primary-800">Creator Pulse</h1>
             </div>
             <nav className="mt-5 px-2 space-y-1">
               {navigation.map((item) => {
-                const isActive = location.pathname === item.href;
-                return (
-                  <Link
-                    key={item.name}
-                    to={item.href}
-                    className={`${
-                      isActive
-                        ? 'bg-blue-100 text-primary-900'
-                        : 'text-gray-600 hover:bg-primary-50 hover:text-primary-900'
-                    } group flex items-center px-2 py-2 text-base font-medium rounded-md`}
-                  >
-                    <item.icon className="mr-4 h-6 w-6" />
-                    {item.name}
-                  </Link>
-                );
-              })}
-              {user?.role === 'superadmin' && adminNavigation.map((item) => {
                 const isActive = location.pathname === item.href;
                 return (
                   <Link
@@ -101,7 +113,7 @@ const Layout = ({ children }) => {
         <div className="flex-1 flex flex-col min-h-0 bg-white border-r border-gray-200">
           <div className="flex-1 flex flex-col pt-5 pb-4 overflow-y-auto">
             <div className="flex items-center flex-shrink-0 px-4">
-              <h1 className="text-xl font-bold text-gray-800">AI Newsletter</h1>
+              <h1 className="text-xl font-bold text-gray-800">Creator Pulse</h1>
             </div>
             <nav className="mt-5 flex-1 px-2 space-y-1">
               {navigation.map((item) => {
@@ -121,33 +133,16 @@ const Layout = ({ children }) => {
                   </Link>
                 );
               })}
-              {user?.role === 'superadmin' && adminNavigation.map((item) => {
-                const isActive = location.pathname === item.href;
-                return (
-                  <Link
-                    key={item.name}
-                    to={item.href}
-                    className={`${
-                      isActive
-                        ? 'bg-blue-100 text-primary-900'
-                        : 'text-gray-600 hover:bg-primary-50 hover:text-primary-900'
-                    } group flex items-center px-2 py-2 text-sm font-medium rounded-md`}
-                  >
-                    <item.icon className="mr-3 h-5 w-5" />
-                    {item.name}
-                  </Link>
-                );
-              })}
             </nav>
           </div>
           <div className="flex-shrink-0 flex border-t border-gray-200 p-4">
-            <div className="flex items-center">
+            <div className="flex items-center min-w-0 flex-1">
               <div className="flex-shrink-0">
                 <User className="h-8 w-8 text-primary-600" />
               </div>
-              <div className="ml-3">
-                <p className="text-sm font-medium text-gray-700">{user?.username}</p>
-                <p className="text-xs text-gray-500 capitalize">{user?.role}</p>
+              <div className="ml-3 min-w-0 flex-1">
+                <p className="text-sm font-medium text-gray-700 truncate">{user?.first_name} {user?.last_name}</p>
+                <p className="text-xs text-gray-500 capitalize">{getRoleName(user?.role_id)}</p>
               </div>
             </div>
             <button

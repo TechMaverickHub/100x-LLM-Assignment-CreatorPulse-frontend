@@ -1,21 +1,47 @@
 import api from './api.js';
+import { API_ROUTES } from '../constants.js';
 
 export const newsletterService = {
-  // Get latest newsletter
-  getLatestNewsletter: async () => {
-    const response = await api.get('/newsletter/latest/');
-    return response.data;
-  },
-
   // Get newsletter by date
   getNewsletterByDate: async (date) => {
-    const response = await api.get(`/newsletter/${date}/`);
+    const response = await api.get(`${API_ROUTES.NEWSLETTER_BY_DATE}${date}/`);
     return response.data;
   },
 
   // Get newsletter history
   getNewsletterHistory: async () => {
-    const response = await api.get('/newsletter/history/');
+    const response = await api.get(API_ROUTES.NEWSLETTER_HISTORY);
+    return response.data;
+  },
+
+  // Generate newsletter
+  generateNewsletter: async () => {
+    const response = await api.post(API_ROUTES.NEWSLETTER_GENERATE);
+    return response.data;
+  },
+
+  // Send newsletter
+  sendNewsletter: async (htmlContent, recipient = null) => {
+    const payload = {
+      html_content: htmlContent
+    };
+    
+    if (recipient) {
+      payload.recipient = recipient;
+    }
+    
+    const response = await api.post(API_ROUTES.NEWSLETTER_SEND, payload);
+    return response.data;
+  },
+
+  // Schedule newsletter
+  scheduleNewsletter: async ({ draftId, startTimeIso, frequency }) => {
+    const payload = {
+      draft: draftId,
+      start_time: startTimeIso,
+      frequency,
+    };
+    const response = await api.post(API_ROUTES.NEWSLETTER_SCHEDULE, payload);
     return response.data;
   }
 };

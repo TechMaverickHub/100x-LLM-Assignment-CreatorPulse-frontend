@@ -1,7 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { createSource, updateSource, clearError } from '../store/sourceSlice.js';
-import { X } from 'lucide-react';
+import { createSource, updateSource, deleteSource, activateSource, deactivateSource, clearError } from '../store/sourceSlice.js';
+import { topicService } from '../services/topicService.js';
+import { SOURCE_TYPE_CONSTANTS, SOURCE_TYPE_LABELS } from '../constants.js';
+import { X, Power } from 'lucide-react';
+import ConfirmationModal from './ConfirmationModal.jsx';
 
 const SourceForm = ({ source, onSuccess, onCancel }) => {
   const dispatch = useDispatch();
@@ -11,27 +14,54 @@ const SourceForm = ({ source, onSuccess, onCancel }) => {
     name: '',
     description: '',
     url: '',
-    source_type: 'website',
+    source_type: SOURCE_TYPE_CONSTANTS.RSS,
+    topic: '',
     is_active: true
   });
+  
+  const [topics, setTopics] = useState([]);
+  const [topicsLoading, setTopicsLoading] = useState(false);
+  const [showActivateModal, setShowActivateModal] = useState(false);
 
   useEffect(() => {
     if (source) {
+      console.log('SourceForm - Source object:', source);
+      console.log('SourceForm - is_active value:', source.is_active);
       setFormData({
         name: source.name || '',
         description: source.description || '',
         url: source.url || '',
-        source_type: source.source_type || 'website',
+        source_type: typeof source.source_type === 'object' ? 
+          Object.keys(SOURCE_TYPE_LABELS).find(key => SOURCE_TYPE_LABELS[key] === source.source_type.name) || SOURCE_TYPE_CONSTANTS.RSS :
+          source.source_type || SOURCE_TYPE_CONSTANTS.RSS,
+        topic: typeof source.topic === 'object' ? source.topic.id : source.topic || '',
         is_active: source.is_active !== undefined ? source.is_active : true
       });
     }
   }, [source]);
 
+  // Fetch topics when component mounts
+  useEffect(() => {
+    const fetchTopics = async () => {
+      setTopicsLoading(true);
+      try {
+        const response = await topicService.getTopics();
+        setTopics(response.results || []);
+      } catch (error) {
+        console.error('Failed to fetch topics:', error);
+      } finally {
+        setTopicsLoading(false);
+      }
+    };
+
+    fetchTopics();
+  }, []);
+
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     setFormData(prev => ({
       ...prev,
-      [name]: type === 'checkbox' ? checked : value
+      [name]: type === 'checkbox' ? checked : (type === 'number' ? parseInt(value, 10) : value)
     }));
     
     if (error) {
@@ -44,7 +74,10 @@ const SourceForm = ({ source, onSuccess, onCancel }) => {
     
     try {
       if (source) {
-        await dispatch(updateSource({ id: source.id, sourceData: formData })).unwrap();
+        const sourceId = source.pk || source.id;
+        console.log('Updating source with ID:', sourceId);
+        console.log('Source object:', source);
+        await dispatch(updateSource({ id: sourceId, sourceData: formData })).unwrap();
       } else {
         await dispatch(createSource(formData)).unwrap();
       }
@@ -52,6 +85,35 @@ const SourceForm = ({ source, onSuccess, onCancel }) => {
     } catch (error) {
       console.error('Failed to save source:', error);
     }
+  };
+
+  const handleActivateClick = () => {
+    setShowActivateModal(true);
+  };
+
+  const handleActivateConfirm = async () => {
+    try {
+      const sourceId = source.pk || source.id;
+      const action = source.is_active ? 'deactivating' : 'activating';
+      console.log(`${action} source with ID:`, sourceId);
+      
+      if (source.is_active) {
+        // Deactivate source using DELETE method on /api/source/{id}
+        await dispatch(deactivateSource(sourceId)).unwrap();
+      } else {
+        // Activate source using PATCH method on /api/source/{id}/activate
+        await dispatch(activateSource(sourceId)).unwrap();
+      }
+      
+      setShowActivateModal(false);
+      onSuccess();
+    } catch (error) {
+      console.error('Failed to activate/deactivate source:', error);
+    }
+  };
+
+  const handleActivateCancel = () => {
+    setShowActivateModal(false);
   };
 
   return (
@@ -127,64 +189,110 @@ const SourceForm = ({ source, onSuccess, onCancel }) => {
 
         <div>
           <label htmlFor="source_type" className="block text-sm font-medium text-gray-700">
-            Source Type
+            Source Type *
           </label>
           <select
             name="source_type"
             id="source_type"
+            required
             className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
             value={formData.source_type}
             onChange={handleChange}
           >
-            <option value="website">Website</option>
-            <option value="blog">Blog</option>
-            <option value="news">News Site</option>
-            <option value="academic">Academic Journal</option>
-            <option value="social">Social Media</option>
-            <option value="other">Other</option>
+            {Object.entries(SOURCE_TYPE_LABELS).map(([key, label]) => (
+              <option key={key} value={parseInt(key)}>
+                {label}
+              </option>
+            ))}
           </select>
         </div>
 
-        <div className="flex items-center">
-          <input
-            type="checkbox"
-            name="is_active"
-            id="is_active"
-            className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
-            checked={formData.is_active}
-            onChange={handleChange}
-          />
-          <label htmlFor="is_active" className="ml-2 block text-sm text-gray-900">
-            Active (include in newsletter generation)
+        <div>
+          <label htmlFor="topic" className="block text-sm font-medium text-gray-700">
+            Topic *
           </label>
-        </div>
-      </div>
-
-      <div className="px-6 py-4 bg-gray-50 flex justify-end space-x-3">
-        <button
-          type="button"
-          onClick={onCancel}
-          className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
-        >
-          Cancel
-        </button>
-        <button
-          type="submit"
-          disabled={loading}
-          className="px-4 py-2 text-sm font-medium text-white bg-primary-600 border border-transparent rounded-md hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          {loading ? (
-            <div className="flex items-center">
-              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-              {source ? 'Updating...' : 'Creating...'}
-            </div>
-          ) : (
-            source ? 'Update Source' : 'Create Source'
+          <select
+            name="topic"
+            id="topic"
+            required
+            className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
+            value={formData.topic}
+            onChange={handleChange}
+            disabled={topicsLoading}
+          >
+            <option value="">Select a topic</option>
+            {topics.map((topic) => (
+              <option key={topic.id} value={topic.id}>
+                {topic.name}
+              </option>
+            ))}
+          </select>
+          {topicsLoading && (
+            <p className="mt-1 text-sm text-gray-500">Loading topics...</p>
           )}
-        </button>
-      </div>
-    </form>
-  );
-};
+        </div>
 
-export default SourceForm;
+      </div>
+
+      <div className="px-6 py-4 bg-gray-50 flex justify-between">
+         <div>
+           {source && (
+             <button
+               type="button"
+               onClick={handleActivateClick}
+               disabled={loading}
+               className={`inline-flex items-center px-4 py-2 text-sm font-medium border rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed ${
+                 source.is_active 
+                   ? 'text-orange-700 bg-orange-50 border-orange-200 hover:bg-orange-100 focus:ring-orange-500'
+                   : 'text-green-700 bg-green-50 border-green-200 hover:bg-green-100 focus:ring-green-500'
+               }`}
+             >
+               <Power className="h-4 w-4 mr-2" />
+               {source.is_active ? 'Deactivate Source' : 'Activate Source'}
+             </button>
+           )}
+         </div>
+        <div className="flex space-x-3">
+          <button
+            type="button"
+            onClick={onCancel}
+            className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
+          >
+            Cancel
+          </button>
+          <button
+            type="submit"
+            disabled={loading}
+            className="px-4 py-2 text-sm font-medium text-white bg-primary-600 border border-transparent rounded-md hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {loading ? (
+              <div className="flex items-center">
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                {source ? 'Updating...' : 'Creating...'}
+              </div>
+            ) : (
+              source ? 'Update Source' : 'Create Source'
+            )}
+          </button>
+         </div>
+       </div>
+
+       {/* Confirmation Modal */}
+       <ConfirmationModal
+         isOpen={showActivateModal}
+         onClose={handleActivateCancel}
+         onConfirm={handleActivateConfirm}
+         title={source?.is_active ? "Deactivate Source" : "Activate Source"}
+         message={source?.is_active 
+           ? "Are you sure you want to deactivate this source? The source will be disabled and won't be included in newsletter generation."
+           : "Are you sure you want to activate this source? The source will be enabled and included in newsletter generation."
+         }
+         confirmText={source?.is_active ? "Deactivate Source" : "Activate Source"}
+         cancelText="Cancel"
+         type={source?.is_active ? "warning" : "info"}
+       />
+     </form>
+   );
+ };
+ 
+ export default SourceForm;
